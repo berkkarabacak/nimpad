@@ -671,6 +671,7 @@ public sealed partial class TabViewModel : ObservableObject
             }
 
             _startsDirty = false;
+            IsMissingOnDisk = false;
             _recoveryWriter.Cancel();
             UpdateExternalDirty();
             _context.Banners.Remove(bannerKey);
@@ -721,11 +722,24 @@ public sealed partial class TabViewModel : ObservableObject
         DateTime written;
         try
         {
+            if (lastWriteTimeUtc is null && !File.Exists(path))
+            {
+                return OnFileMissingOnDisk();
+            }
+
             written = lastWriteTimeUtc ?? File.GetLastWriteTimeUtc(path);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             return false;
+        }
+
+        if (IsMissingOnDisk)
+        {
+            // The file is back (moved back, restored or recreated): the text is unsaved only if it was edited.
+            IsMissingOnDisk = false;
+            _context.Banners.Remove(DiskBannerKey);
+            UpdateExternalDirty();
         }
 
         if (written == LastSavedWriteTimeUtc || written == _diskWriteTimeUtc)
@@ -757,6 +771,80 @@ public sealed partial class TabViewModel : ObservableObject
             $"{DisplayText.Quote(Title)} changed on disk.",
             "Reload",
             ReloadFromDiskAsync);
+
+    /// <summary>
+    /// True while the tab's file is missing on disk (moved, renamed or deleted by another program). The text stays in
+    /// the tab and counts as unsaved: Save writes the file back, Save as puts it elsewhere.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsMissingOnDisk { get; private set; }
+
+    /// <summary>
+    /// Tells the tab its file was moved, renamed or deleted (from the App's file watcher). A shown tab keeps its text,
+    /// becomes unsaved and shows "“X” was moved or deleted." with Save as; a tab whose text is not shown yet forgets a
+    /// clean loaded copy, so showing it reports the missing file.
+    /// </summary>
+    /// <returns><see langword="true"/> when the banner is shown.</returns>
+    public bool OnFileMissingOnDisk()
+    {
+        if (!IsExternal || FilePath is not { } path)
+        {
+            return false;
+        }
+
+        try
+        {
+            if (File.Exists(path))
+            {
+                // Back already (an atomic save replaces the file): treat it as a change.
+                return OnFileChangedOnDisk(File.GetLastWriteTimeUtc(path));
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+
+        if (Buffer is null)
+        {
+            if (LoadState == TabLoadState.Loaded && !_startsDirty)
+            {
+                _loadTask = null;
+                LoadState = TabLoadState.NotLoaded;
+            }
+
+            return false;
+        }
+
+        IsMissingOnDisk = true;
+        UpdateExternalDirty();
+        _context.Banners.Show(
+            DiskBannerKey,
+            BannerKind.Warning,
+            $"{DisplayText.Quote(Title)} was moved or deleted.",
+            "Save as",
+            SaveAsFromBannerAsync,
+            removeOnAction: false);
+        return true;
+    }
+
+    // The missing-file banner's Save as: the dialog starts in the file's folder when it still exists.
+    private async Task SaveAsFromBannerAsync()
+    {
+        if (FilePath is not { } path)
+        {
+            return;
+        }
+
+        var directory = System.IO.Path.GetDirectoryName(path);
+        var target = _context.Platform.FileDialogs.PickSaveFile(
+            System.IO.Path.GetFileName(path),
+            directory is not null && Directory.Exists(directory) ? directory : null);
+        if (!string.IsNullOrWhiteSpace(target))
+        {
+            await SaveAsAsync(target);
+        }
+    }
 
     /// <summary>Replaces the tab's text with the file's current content (the banner's Reload).</summary>
     public async Task ReloadFromDiskAsync()
@@ -871,6 +959,7 @@ public sealed partial class TabViewModel : ObservableObject
     internal void MarkDiscarded()
     {
         _recoveryWriter.Cancel();
+        IsMissingOnDisk = false;
         if (Buffer is { } buffer)
         {
             _savedVersion = buffer.Version;
@@ -1028,7 +1117,7 @@ public sealed partial class TabViewModel : ObservableObject
 
     private void UpdateExternalDirty()
     {
-        var dirty = Buffer is { } buffer && buffer.Version != _savedVersion;
+        var dirty = Buffer is { } buffer && (buffer.Version != _savedVersion || IsMissingOnDisk);
         IsDirty = dirty;
         SaveState = dirty ? TabSaveState.Pending : TabSaveState.Saved;
     }
