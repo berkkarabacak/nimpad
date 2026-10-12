@@ -127,8 +127,11 @@ was. Any change of tabs, selection or view state saves the session 500 ms later.
   `Buffer` raises `PropertyChanged` when a document is attached (find and replace searches the new text).
 - External files: `SaveAsync()`, `SaveAsAsync(path)`, `OnFileChangedOnDisk(lastWriteUtc?)` from the
   `FileSystemWatcher` (ignores NimPad's own save; otherwise a "“X” changed on disk." banner with Reload; dismissing
-  keeps the user's text), `ReloadFromDiskAsync()`, `ImportAsync()` (copies the file, with unsaved edits, into the
-  workspace and opens the note). Unsaved edits go to a recovery buffer 2 s after the last change.
+  keeps the user's text), `OnFileMissingOnDisk()` (moved, renamed or deleted: "“X” was moved or deleted." with
+  Save as; the text stays, `IsMissingOnDisk` and `IsDirty` are true until it is saved or the file is back),
+  `ReloadFromDiskAsync()`, `ImportAsync()` (copies the file, with unsaved edits, into the workspace and opens the
+  note). Unsaved edits go to a recovery buffer 2 s after the last change. The App's `ExternalFileWatcher` (below)
+  makes these calls.
 - Crash recovery: at startup every recovery buffer is applied to the tab of its file, whether restored, opened from
   the command line or opened later, so the tab starts dirty with the recovered text (and new edits extend it); the
   "NimPad recovered unsaved changes to N files" banner's **Review** opens the files that are not open yet. If the file
@@ -230,6 +233,16 @@ Every change applies live and is stored at once.
 `ShortcutsViewModel` (namespace `NimPad.Presentation.Shortcuts`): `Filter`, `Groups` (`ShortcutGroupViewModel(Title,
 Shortcuts)` with `ShortcutViewModel(Label, Keys)`), `HasResults`, `EmptyTitle` ("No shortcuts match “zoomm”"),
 `EmptyMessage` ("Try “zoom” or a shorter word."), `FooterText`.
+
+## OS integration logic (namespace `NimPad.Presentation.Integration`)
+
+Platform-neutral parts of the App's Windows integration (`NimPad.App/Integration/README.md` has the whole picture):
+`AppCommandLine` (`Parse`, `ResolveFiles`, `BuildRestartArguments`) and `WindowsCommandLine` (`Quote`, `Split`);
+`SingleInstanceProtocol` + `SingleInstanceMessage` (pipe message format and framing, instance names);
+`HotkeyVirtualKeys` (`HotkeyGesture` ↔ `RegisterHotKey` modifiers and virtual keys, `ComposeGesture` for the shortcut
+capture); `AutostartCommand` (the Run value); `FileDialogFilters` (the Open dialog's filter string);
+`ExternalFileChanges` (what settled file events mean) and `ExternalFileWatcher(shell)` (one debounced
+`FileSystemWatcher` per external tab, ignoring NimPad's own saves; create it on the UI thread after initialization).
 
 ## Core additions made for the view models
 
