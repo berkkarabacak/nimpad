@@ -26,16 +26,27 @@ fi
 
 say "Checking .NET SDK (version from global.json)"
 SDK_VERSION="$(node -p 'require("./global.json").sdk.version')"
-if ! command -v dotnet >/dev/null || ! dotnet --list-sdks | grep -q "^${SDK_VERSION%.*}"; then
-  if [[ -x "$HOME/.dotnet/dotnet" ]] && "$HOME/.dotnet/dotnet" --list-sdks | grep -q "^${SDK_VERSION%.*}"; then
-    export PATH="$HOME/.dotnet:$PATH"
-  else
-    say "Installing .NET SDK $SDK_VERSION to ~/.dotnet"
-    curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
-    bash /tmp/dotnet-install.sh --version "$SDK_VERSION" --install-dir "$HOME/.dotnet"
-    export PATH="$HOME/.dotnet:$PATH"
-    echo "Add ~/.dotnet to your PATH to use dotnet in new shells."
-  fi
+# global.json uses rollForward=latestFeature: an installed SDK qualifies when it has the same major.minor and a
+# feature band/patch (the third component, e.g. 401) at least as high as the pinned one. Previews don't count.
+has_sdk() {
+  "$1" --list-sdks 2>/dev/null | awk '{print $1}' | node -e '
+    const want = process.argv[1].split(".").map(Number);
+    const ok = require("fs").readFileSync(0, "utf8").split("\n").filter((v) => v && !v.includes("-")).some((v) => {
+      const [a, b, c] = v.split(".").map(Number);
+      return a === want[0] && b === want[1] && c >= want[2];
+    });
+    process.exit(ok ? 0 : 1);' "$SDK_VERSION"
+}
+if command -v dotnet >/dev/null && has_sdk dotnet; then
+  :
+elif [[ -x "$HOME/.dotnet/dotnet" ]] && has_sdk "$HOME/.dotnet/dotnet"; then
+  export PATH="$HOME/.dotnet:$PATH"
+else
+  say "Installing .NET SDK $SDK_VERSION to ~/.dotnet"
+  curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+  bash /tmp/dotnet-install.sh --version "$SDK_VERSION" --install-dir "$HOME/.dotnet"
+  export PATH="$HOME/.dotnet:$PATH"
+  echo "Add ~/.dotnet to your PATH to use dotnet in new shells."
 fi
 
 say "Installing JavaScript dependencies"

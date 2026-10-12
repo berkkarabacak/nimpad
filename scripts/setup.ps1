@@ -19,8 +19,20 @@ if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) { corepack enable }
 
 Say 'Checking .NET SDK (version from global.json)'
 $sdk = (Get-Content global.json | ConvertFrom-Json).sdk.version
-$band = $sdk.Substring(0, $sdk.LastIndexOf('.'))
-$haveSdk = (Get-Command dotnet -ErrorAction SilentlyContinue) -and ((dotnet --list-sdks) -match "^$([regex]::Escape($band))")
+$want = [version]$sdk
+# global.json uses rollForward=latestFeature: an installed SDK qualifies when it has the same major.minor and a
+# feature band/patch (the third component, e.g. 401) at least as high as the pinned one. Previews don't count.
+$haveSdk = $false
+if (Get-Command dotnet -ErrorAction SilentlyContinue) {
+    foreach ($line in (dotnet --list-sdks)) {
+        $v = ($line -split ' ')[0]
+        if ($v -match '-') { continue }
+        $installed = [version]$v
+        if ($installed.Major -eq $want.Major -and $installed.Minor -eq $want.Minor -and $installed.Build -ge $want.Build) {
+            $haveSdk = $true
+        }
+    }
+}
 if (-not $haveSdk) {
     Say "Installing .NET SDK $sdk"
     $installer = Join-Path $env:TEMP 'dotnet-install.ps1'
