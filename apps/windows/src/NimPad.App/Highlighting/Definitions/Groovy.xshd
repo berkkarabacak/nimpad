@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    NimPad: Groovy highlighting (Java-like: keywords, strings including GStrings and triple quotes, numbers,
+    comments, annotations), also used for .gradle files and Jenkinsfiles.
+
+    The colors are names only: HighlightingProvider recolors every named color to a design token through its
+    mapping table (HighlightingSources.cs), so no color value lives here. See YAML.xshd for the AvalonEdit rule
+    semantics. Known limits: /slashy/ strings are not recognized (they look like division), and a "}" inside a
+    ${...} placeholder ends it early.
+-->
+<SyntaxDefinition name="Groovy" extensions=".groovy;.gradle;.gvy;.gy;.gsh" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="Comment" />
+    <Color name="String" />
+    <Color name="Interpolation" />
+    <Color name="Number" />
+    <Color name="Keyword" />
+    <Color name="Literal" />
+    <Color name="Annotation" />
+    <Color name="Punctuation" />
+
+    <!-- Escape sequences in 'single-quoted' and '''triple-single-quoted''' strings. -->
+    <RuleSet name="Escapes">
+        <Span begin="\\" end="." />
+    </RuleSet>
+
+    <!-- "GStrings": escapes plus ${expression} and $name.path placeholders. -->
+    <RuleSet name="GString">
+        <Span begin="\\" end="." />
+        <Span color="Interpolation" begin="\$\{" end="\}" />
+        <Rule color="Interpolation">\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*</Rule>
+    </RuleSet>
+
+    <!-- $/dollar slashy/$ strings: $$ and $/ are escapes; placeholders work as in GStrings. -->
+    <RuleSet name="DollarSlashy">
+        <Span begin="\$[$/]" end="" />
+        <Span color="Interpolation" begin="\$\{" end="\}" />
+        <Rule color="Interpolation">\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*</Rule>
+    </RuleSet>
+
+    <RuleSet>
+        <Span color="Comment" begin="^#!" />
+        <Span color="Comment" begin="//" />
+        <Span color="Comment" multiline="true" begin="/\*" end="\*/" />
+
+        <!-- Triple quotes are listed before single quotes so they win at the same position. -->
+        <Span color="String" ruleSet="GString" multiline="true" begin="&quot;&quot;&quot;" end="&quot;&quot;&quot;" />
+        <Span color="String" ruleSet="Escapes" multiline="true" begin="'''" end="'''" />
+        <Span color="String" ruleSet="DollarSlashy" multiline="true" begin="\$/" end="/\$" />
+        <Span color="String" ruleSet="GString" begin="&quot;" end="&quot;" />
+        <Span color="String" ruleSet="Escapes" begin="'" end="'" />
+
+        <Keywords color="Literal">
+            <Word>true</Word>
+            <Word>false</Word>
+            <Word>null</Word>
+        </Keywords>
+
+        <Keywords color="Keyword">
+            <Word>abstract</Word>
+            <Word>as</Word>
+            <Word>assert</Word>
+            <Word>boolean</Word>
+            <Word>break</Word>
+            <Word>byte</Word>
+            <Word>case</Word>
+            <Word>catch</Word>
+            <Word>char</Word>
+            <Word>class</Word>
+            <Word>const</Word>
+            <Word>continue</Word>
+            <Word>def</Word>
+            <Word>default</Word>
+            <Word>do</Word>
+            <Word>double</Word>
+            <Word>else</Word>
+            <Word>enum</Word>
+            <Word>extends</Word>
+            <Word>final</Word>
+            <Word>finally</Word>
+            <Word>float</Word>
+            <Word>for</Word>
+            <Word>goto</Word>
+            <Word>if</Word>
+            <Word>implements</Word>
+            <Word>import</Word>
+            <Word>in</Word>
+            <Word>instanceof</Word>
+            <Word>int</Word>
+            <Word>interface</Word>
+            <Word>long</Word>
+            <Word>native</Word>
+            <Word>new</Word>
+            <Word>non-sealed</Word>
+            <Word>package</Word>
+            <Word>permits</Word>
+            <Word>private</Word>
+            <Word>protected</Word>
+            <Word>public</Word>
+            <Word>record</Word>
+            <Word>return</Word>
+            <Word>sealed</Word>
+            <Word>short</Word>
+            <Word>static</Word>
+            <Word>strictfp</Word>
+            <Word>super</Word>
+            <Word>switch</Word>
+            <Word>synchronized</Word>
+            <Word>this</Word>
+            <Word>threadsafe</Word>
+            <Word>throw</Word>
+            <Word>throws</Word>
+            <Word>trait</Word>
+            <Word>transient</Word>
+            <Word>try</Word>
+            <Word>var</Word>
+            <Word>void</Word>
+            <Word>volatile</Word>
+            <Word>while</Word>
+            <Word>yield</Word>
+        </Keywords>
+
+        <!-- @Annotation, @groovy.transform.CompileStatic -->
+        <Rule color="Annotation">@[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*</Rule>
+
+        <!-- 0x1F, 0b1010, 1_000L, 3.14d, 1e-9, .5f; suffixes: l L g G i I d D f F. "1..10" is a range. -->
+        <Rule color="Number">
+            \b0[xX][0-9a-fA-F_]+[lLgGiI]?\b
+          | \b0[bB][01_]+[lLgGiI]?\b
+          | (?:\b[0-9][0-9_]*(?:\.[0-9][0-9_]*)?|\.[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)?[lLgGiIdDfF]?\b
+        </Rule>
+
+        <Rule color="Punctuation">[?,.;:()\[\]{}+\-/%*&lt;&gt;^~!|&amp;=]+</Rule>
+    </RuleSet>
+</SyntaxDefinition>

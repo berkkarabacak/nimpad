@@ -18,4 +18,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="NimPad.App.Tests" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- NimPad's own syntax definitions (YAML, Groovy, INI); see Highlighting/README.md. -->
+    <EmbeddedResource Include="Highlighting\Definitions\*.xshd" LogicalName="NimPad.App.Highlighting.Definitions.%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    NimPad: INI and TOML highlighting (.ini, .cfg, .conf, .toml, .editorconfig): sections, keys, values, strings,
+    numbers and dates, booleans, comments, arrays and inline tables.
+
+    The colors are names only: HighlightingProvider recolors every named color to a design token through its
+    mapping table (HighlightingSources.cs), so no color value lives here. See YAML.xshd for the AvalonEdit rule
+    semantics and the speed rules. "; comment" and "# comment" start at the line start or after whitespace
+    (path=a;b keeps its ;).
+    A value starts after the first = or : of the line, after "key =" inside { }, after [ or , (arrays), or at the
+    start of an array continuation line.
+-->
+<SyntaxDefinition name="INI" extensions=".ini;.cfg;.conf;.toml;.editorconfig" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="Comment" />
+    <Color name="Section" />
+    <Color name="Key" />
+    <Color name="String" />
+    <Color name="Number" />
+    <Color name="Literal" />
+    <Color name="Punctuation" />
+
+    <!-- Escape sequences in "basic" strings. -->
+    <RuleSet name="Escapes">
+        <Span begin="\\" end="." />
+    </RuleSet>
+
+    <RuleSet>
+        <Span color="Comment" begin="[;#](?&lt;=(?:^|[ \t])[;#])" />
+
+        <!-- Quoted keys ("a b" = 1, 'c' = 2) are listed before quoted values. -->
+        <Span color="Key" ruleSet="Escapes" begin="&quot;(?&lt;=(?:^|[{,])(?>[ \t]*)&quot;)(?=(?>(?:[^&quot;\\]|\\.)*)&quot;[ \t]*[=:.])" end="&quot;" />
+        <Span color="Key" begin="'(?&lt;=(?:^|[{,])(?>[ \t]*)')(?=[^']*'[ \t]*[=:.])" end="'" />
+
+        <!-- Quoted values. -->
+        <Span color="String" ruleSet="Escapes" multiline="true" begin="&quot;&quot;&quot;(?&lt;=(?:^[^=:\r\n]*[=:]|[{,][^=:\r\n,{}\[\]]*=|[\[{,]|^)(?>[ \t]*)&quot;&quot;&quot;)" end="&quot;&quot;&quot;" />
+        <Span color="String" multiline="true" begin="'''(?&lt;=(?:^[^=:\r\n]*[=:]|[{,][^=:\r\n,{}\[\]]*=|[\[{,]|^)(?>[ \t]*)''')" end="'''" />
+        <Span color="String" ruleSet="Escapes" begin="&quot;(?&lt;=(?:^[^=:\r\n]*[=:]|[{,][^=:\r\n,{}\[\]]*=|[\[{,]|^)(?>[ \t]*)&quot;)" end="&quot;" />
+        <Span color="String" begin="'(?&lt;=(?:^[^=:\r\n]*[=:]|[{,][^=:\r\n,{}\[\]]*=|[\[{,]|^)(?>[ \t]*)')" end="'" />
+
+        <!-- [section], [[array.of.tables]], [*.{js,py}], [remote "origin"] -->
+        <Rule color="Section">^[ \t]*\[\[?[^\]\r\n]*\]\]?</Rule>
+        <Rule color="Key">
+            [^\s=:;\#\[\]{},"'](?&lt;=(?:^|[{,])(?>[ \t]*).)
+            (?>[^\s=:]*)(?:(?>[ \t]+)(?>[^\s=:]+))*
+            (?=[ \t]*[=:])
+        </Rule>
+
+        <!-- Whole values only: "port = 8080" is a number, "version = 1.2.3" is text. -->
+        <Rule color="Literal">
+            (?=[tTfFyYnNoO])(?&lt;=(?:^[^=:\r\n]*[=:]|[{,][^=:\r\n,{}\[\]]*=|[\[{,]|^)(?>[ \t]*))
+            (?i:true|false|yes|no|on|off)
+            (?=[ \t]*(?:$|[,\]}]))
+        </Rule>
+        <Rule color="Number">
+            (?=[-+0-9.in])(?&lt;=(?:^[^=:\r\n]*[=:]|[{,][^=:\r\n,{}\[\]]*=|[\[{,]|^)(?>[ \t]*))
+            (?:
+                [0-9]{4}-[0-9]{2}-[0-9]{2}(?:[Tt\x20][0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?(?:[Zz]|[-+][0-9]{2}:[0-9]{2})?)?
+              | [0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?
+              | [-+]?(?:0x[0-9A-Fa-f_]+|0o[0-7_]+|0b[01_]+|(?:[0-9][0-9_]*(?:\.[0-9_]+)?|\.[0-9]+)(?:[eE][-+]?[0-9_]+)?|inf|nan)
+            )
+            (?=[ \t]*(?:$|[,\]}]))
+        </Rule>
+        <!-- Unquoted values (INI): the rest of the line after the first = or :. -->
+        <Rule color="String">
+            [^\s;\#"'\[\]{},](?&lt;=^[^=:\r\n]*[=:](?>[ \t]*).)
+            (?>[^ \t\r\n]*)(?:(?>[ \t]+)(?>[^ \t\r\n]+))*
+        </Rule>
+
+        <Rule color="Punctuation">[=:](?&lt;=^[^=:\r\n]*.)|[\[\]{},]</Rule>
+    </RuleSet>
+</SyntaxDefinition>
