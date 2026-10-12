@@ -31,3 +31,6 @@ Thumbs.db
 
 # Claude Code agent worktrees
 .claude/worktrees/
+
+# Regenerated design-deck page images (see docs/engineering-specs/README.md)
+docs/design/renders/

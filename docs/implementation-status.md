@@ -5,6 +5,9 @@ that run in CI. See [testing.md](testing.md) for where each suite runs.
 
 Legend: ✅ done · 🟡 in progress · ⏳ planned (later phase) · ➖ deferred (decision recorded)
 
+> **Project paused on 2026-10-12, partway through Phase 1.** Everything is committed on the
+> `claude/vibrant-wright-a3yuns` branch (pull request #1). See "Where to resume" at the end.
+
 ## Phase 0 — Repository and project foundation ✅
 
 | Item | Status | Notes |
@@ -32,12 +35,12 @@ Legend: ✅ done · 🟡 in progress · ⏳ planned (later phase) · ➖ deferre
 | Light/dark themes | ✅ | All design tokens, control kit, live switching, follow-Windows mode (verified on Windows CI) |
 | Syntax modes | ✅ | Plain text plus 14 highlighted formats, themed per design tokens (verified on Windows CI) |
 | View models | ✅ | Tabs, explorer, editor state, find & replace, status bar, settings, shortcuts, toasts, banners |
-| Modern main window | 🟡 | Custom title bar, tab strip, status bar, responsive layouts |
-| Tabs and keyboard shortcuts | 🟡 | View models done; WPF views in progress |
-| Explorer sidebar with drag and drop | 🟡 | View model done; WPF view next |
-| Editor (AvalonEdit), find & replace, links | 🟡 | Engine and state done; WPF view next |
-| Settings window, single instance, global hotkey, file watcher | 🟡 | In progress |
-| End-to-end UI tests | 🟡 | Written against the UI automation contract; merged as the UI lands |
+| Modern main window | 🟡 | Shell implemented: title bar with Snap Layouts, tab strip, status bar, toasts and banners, dialogs, responsive layouts. Builds clean; **its review and fix pass was not run**, and its WPF tests have not yet run on Windows. |
+| Tabs and keyboard shortcuts | 🟡 | View models done and reviewed; tab strip and key bindings implemented in the shell (unreviewed) |
+| Explorer sidebar with drag and drop | 🟡 | View model done and reviewed; the WPF view is still the shell's minimal stub ([spec](engineering-specs/explorer.md)) |
+| Editor (AvalonEdit), find & replace, links | 🟡 | Engine, state and highlighting done; the WPF editor is the shell's stub (typing, autosave, caret restore) ([spec](engineering-specs/editor.md)) |
+| Settings window, single instance, global hotkey, autostart, file watcher | 🟡 | Implemented with cross-platform tests for the pure logic; **not yet wired into App startup**, not reviewed, Windows behavior untested |
+| End-to-end UI tests | 🟡 | 7 FlaUI tests written against the [UI automation contract](engineering-specs/automation-ids.md). They run on Windows CI and are expected to fail until the explorer and editor views and the integration wiring land. |
 
 ### Deferred within Phase 1 (decided, not forgotten)
 
@@ -64,3 +67,30 @@ Legend: ✅ done · 🟡 in progress · ⏳ planned (later phase) · ➖ deferre
 - **Phase 2:** schedule `nimpad.purge_expired_idempotency()` once the API writes idempotency records.
 - **Phase 2:** define the `sync_events.event_type` vocabulary and payload schemas before any event is written.
 - **Before relying on Supabase's `postgres` role as the migration owner:** verify it has `BYPASSRLS`.
+
+## Where to resume
+
+The engineering specs used for each slice are in [engineering-specs/](engineering-specs/README.md). The remaining
+steps, in order:
+
+1. **Wire the integration into App startup.** Follow `apps/windows/src/NimPad.App/Integration/README.md`:
+   - Use `AppCommandLine` as the single command-line parser; it replaces the shell's `Services/StartupArgs`.
+   - Call `IntegrationBootstrapper.TryBecomePrimaryInstance` before the window is created, and `Attach` after
+     `ShellViewModel.InitializeAsync`.
+   - Open the settings window via `SettingsWindowLauncher` on `OpenSettingsRequested`.
+   - Start minimized with `--background`.
+   - Set the open-file dialog's filters from `FileDialogFilters`.
+   - Add a `TraceListener` so integration logs reach the file log.
+2. **Review and fix the shell and the integration code.** Run the three-lens review that was cut short, using
+   `implement-review-fix.workflow.js` or an equivalent review.
+3. **Build the explorer and editor views.** They replace the stubs and are specified in `explorer.md` and
+   `editor.md`; both must implement the UI automation contract.
+4. **Get the Windows CI job green.** Run the App tests and the end-to-end suite. `SettingsTests` must select
+   `SettingsNavGeneral` before using the General controls, because only the selected section is visible.
+5. Then confirm the Phase 1 acceptance end to end and update this file.
+
+Open review threads on PR #1 (from the automated Codex review), still waiting on that work:
+- Editor text persistence. Covered in Core and the view models; it closes when the end-to-end restart test passes.
+- The placeholder end-to-end test. It has been replaced by the real suite; it closes when that suite passes on
+  Windows.
+
