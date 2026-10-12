@@ -58,6 +58,8 @@ executable form of this section; both the C# and TS test suites must pass agains
 - **IDs:**
   - UUID version 7, serialized as lowercase hyphenated text (`0192f0c4-…`).
   - Clients generate IDs for new nodes; the server accepts client-generated IDs.
+  - IDs a client mints must be v7: operation IDs (`opId`), device IDs, the node ID of a `create` and the trash
+    batch ID of a `delete`. IDs that only refer to existing rows accept any UUID version.
   - SQLite stores IDs as `TEXT`. In C#, always bind them as strings (`id.ToString("D")`), never as `Guid`
     parameters.
 - **Timestamps:**
@@ -67,7 +69,19 @@ executable form of this section; both the C# and TS test suites must pass agains
 - **Canonical note text:**
   - Managed notes are stored with `\n` line endings. `\r\n` and lone `\r` are normalized on save; external files
     keep their own endings.
+  - Only line endings change. A leading U+FEFF is part of the text and is kept.
   - Text is a .NET/JS string; when serialized it is UTF-8, never with a BOM.
+- **Storable text:**
+  - Managed note text and names must be well-formed UTF-16 without U+0000, because PostgreSQL `text` cannot store
+    anything else exactly.
+  - Clients replace U+0000 and unpaired surrogates with U+FFFD (`toStorableText`) before saving pasted or
+    imported text. The server rejects text that is not storable instead of silently changing it.
+- **Names:**
+  - 1–255 UTF-16 code units, no control characters, not blank.
+  - Leading and trailing whitespace is trimmed using the Unicode White_Space set, which is .NET's
+    `char.IsWhiteSpace`. JavaScript's `trim()` uses a different set and is never used for names.
+- **Revisions:** server revision numbers start at 1. A null base revision means the server has not yet
+  acknowledged the node; it never means "apply unconditionally".
 - **Content checksum:** `sha256:` + the lowercase hex SHA-256 of the canonical text's UTF-8 bytes.
 - **Sibling ordering:** every node has a `position` key, and siblings sort by `(position, id)` using ordinal
   string comparison.
@@ -105,6 +119,10 @@ Coalescing keeps the queue bounded:
 - An update or rename folds into a still-pending `create` of the same node.
 - If a node that never reached the server is deleted and then purged, its pending operations are dropped.
 
+Base revisions are rebased before a push. When the server acknowledges an operation, the sync engine rewrites
+the base revisions of the same node's later queued operations to the revisions the server returned, in the same
+local transaction. The server answers `stale_revision` when a base revision is behind its own.
+
 Phase 2 three-way merge uses `document_sync_base`, the last text acknowledged by the server; it is empty until
 sync exists.
 
@@ -126,9 +144,40 @@ All tables live in the PostgreSQL schema `nimpad`.
 - `anon` and `authenticated` (Supabase roles) get no privileges on the `nimpad` schema, so the Supabase Data API
   cannot expose it.
 - Sync cursor: each workspace has an `event_seq` counter, incremented inside the same transaction that writes a
-  `sync_events` row. That makes `(workspace_id, seq)` gap-free in commit order, which is what clients page by.
-- Folder moves take `pg_advisory_xact_lock` on the workspace and then run a cycle check, so concurrent opposite
-  moves cannot create a cycle.
+  `sync_events` row (through `nimpad.record_sync_event`, eight arguments). That makes `(workspace_id, seq)`
+  gap-free in commit order, which is what clients page by.
+  - `nimpad_app` cannot write `sync_events` or `event_seq` directly.
+  - For `user` and `import` events the actor is the caller. An `agent` event must name its agent, and a device
+    must be an active device of the caller.
+- Tree changes:
+  - A move updates the workspace row, taking the same row lock as `record_sync_event`, so concurrent moves are
+    serialized and cannot create a cycle.
+  - A move made under REPEATABLE READ or SERIALIZABLE from a stale snapshot fails with 40001 and must be retried.
+  - Inserts take no lock (a new node has no descendants). In a multi-row insert, parents come before children.
+- Revisions:
+  - `meta_rev` and `content_rev` are maintained by triggers, and the app can never set them. Writers use
+    `WHERE <rev> = <expected>` together with `RETURNING`.
+  - A revision row is a snapshot of the current content: write the content first, then insert the revision with
+    `revision = content_rev`.
+  - Revisions and the audit log are append-only.
+- Membership:
+  - Creating a workspace adds the owner membership automatically, and that membership cannot be removed.
+  - Co-members can read each other's profiles, including email.
+- Requirements:
+  - The database must use UTF8.
+  - The migration role must be a superuser or have BYPASSRLS.
+  - `DATABASE_URL_MIGRATE` must be a direct or session-mode connection, never a transaction pooler, because the
+    runner holds a session-level advisory lock.
+  - The API refuses to start if its role is a superuser, has BYPASSRLS or is not a member of `nimpad_app`.
+
+Errors callers must handle:
+
+| SQLSTATE | Meaning |
+|---|---|
+| 23503 | Foreign key: `nodes_parent_fkey` and the two-column `*_fkey` keys (cross-workspace references) |
+| 23514 | Check violations: `nodes_no_cycle`, `nodes_parent_is_folder`, `nodes_kind_immutable`, `nodes_identity_immutable`, `nodes_name_valid`, `nodes_position_valid`, `nodes_pin_position_valid`, `workspaces_name_valid`, `workspace_members_owner_kept`, `*_node_is_document`, `*_text_canonical`, `*_checksum_matches`, `document_revisions_match_content`, `devices_revocation_final` |
+| 42501 | Row-level security or missing privilege |
+| 40001, 40P01 | Serialization failure or deadlock: retry the transaction |
 
 ## Desktop threading model
 

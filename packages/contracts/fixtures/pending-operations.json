@@ -1,0 +1,763 @@
+{
+  "description": "Example PendingOperation objects (the pushed part of a pending_operations row). Every 'valid' operation must parse and round-trip unchanged; every 'invalid' one must be rejected. 'needsRebase' operations are valid queue entries that must not be pushed until their base revisions are rebased (PushOperation rejects them). Hand-written; see fixtures/README.md.",
+  "valid": [
+    {
+      "description": "create a folder at the workspace root",
+      "operation": {
+        "opId": "01a13069-949b-7353-b1bb-2d181f441db0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-88e3-7296-af4f-6b32291fd002",
+        "kind": "create",
+        "payload": { "nodeKind": "folder", "parentId": null, "name": "Projects", "position": "a0" },
+        "baseMetaRev": null,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T13:59:43.123Z"
+      }
+    },
+    {
+      "description": "create a document inside a folder (text identified by checksum, never carried)",
+      "operation": {
+        "opId": "01a13069-9883-73fe-82fd-97fadd0f719e",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "create",
+        "payload": {
+          "nodeKind": "document",
+          "parentId": "01a13069-88e3-7296-af4f-6b32291fd002",
+          "name": "groceries.md",
+          "position": "a0V",
+          "format": "markdown",
+          "checksum": "sha256:9846085339e57f41392af181491973cdd069dce7029a03f8a21cc3aa872d97ae"
+        },
+        "baseMetaRev": null,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T13:59:44.123Z"
+      }
+    },
+    {
+      "description": "create an empty document imported from a file",
+      "operation": {
+        "opId": "01a13069-9c6b-7b51-91d5-f3901d3cd44a",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-90b3-7a92-863e-03699be400f4",
+        "kind": "create",
+        "payload": {
+          "nodeKind": "document",
+          "parentId": null,
+          "name": "empty.txt",
+          "position": "Zz",
+          "format": "plain",
+          "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "baseMetaRev": null,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "import",
+        "createdAt": "2026-10-12T13:59:45.123Z"
+      }
+    },
+    {
+      "description": "update_content of a synced document: checksum and format only, never the text",
+      "operation": {
+        "opId": "01a13069-a053-783a-bb3f-0953c745dd28",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "update_content",
+        "payload": {
+          "checksum": "sha256:546b811f00e2db13def40db680b3b88a3e58182609ee7a6706d1f6cc9e96cfd2",
+          "format": "markdown"
+        },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:01.000Z"
+      }
+    },
+    {
+      "description": "rename",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "Weekly groceries — 日本 😀.md" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "move into a folder",
+      "operation": {
+        "opId": "01a13069-a823-7234-b2bd-e3374b11b125",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-90b3-7a92-863e-03699be400f4",
+        "kind": "move",
+        "payload": { "parentId": "01a13069-88e3-7296-af4f-6b32291fd002", "position": "a0G" },
+        "baseMetaRev": 1,
+        "baseContentRev": 1,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:03.000Z"
+      }
+    },
+    {
+      "description": "move (reorder) to the workspace root",
+      "operation": {
+        "opId": "01a13069-ac0b-74d7-a809-749ef74a4018",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-88e3-7296-af4f-6b32291fd002",
+        "kind": "move",
+        "payload": { "parentId": null, "position": "a1" },
+        "baseMetaRev": 2,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:04.000Z"
+      }
+    },
+    {
+      "description": "pin with a position in the Pinned section",
+      "operation": {
+        "opId": "01a13069-aff3-79b4-8205-6ef98d7c55cb",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "pin",
+        "payload": { "pinned": true, "pinPosition": "a0" },
+        "baseMetaRev": 4,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:05.000Z"
+      }
+    },
+    {
+      "description": "unpin",
+      "operation": {
+        "opId": "01a13069-b3db-7888-81a7-b94f983a3928",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "pin",
+        "payload": { "pinned": false, "pinPosition": null },
+        "baseMetaRev": 5,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:06.000Z"
+      }
+    },
+    {
+      "description": "delete: move the subtree to the Trash as one batch",
+      "operation": {
+        "opId": "01a1306a-0001-7000-8000-000000000001",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-88e3-7296-af4f-6b32291fd002",
+        "kind": "delete",
+        "payload": {
+          "trashBatchId": "01a1306a-0001-7000-8000-0000000000b1",
+          "deletedAt": "2026-10-12T14:01:00.000Z"
+        },
+        "baseMetaRev": 6,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:01:00.000Z"
+      }
+    },
+    {
+      "description": "restore a trashed batch",
+      "operation": {
+        "opId": "01a1306a-0001-7000-8000-000000000002",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-88e3-7296-af4f-6b32291fd002",
+        "kind": "restore",
+        "payload": { "trashBatchId": "01a1306a-0001-7000-8000-0000000000b1" },
+        "baseMetaRev": 7,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:02:00.000Z"
+      }
+    },
+    {
+      "description": "purge (delete forever), here by the 30-day Trash cleanup",
+      "operation": {
+        "opId": "01a1306a-0001-7000-8000-000000000003",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-90b3-7a92-863e-03699be400f4",
+        "kind": "purge",
+        "payload": {},
+        "baseMetaRev": 8,
+        "baseContentRev": 2,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "system",
+        "createdAt": "2026-11-11T14:02:00.000Z"
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "description": "create with server base revisions",
+      "operation": {
+        "opId": "01a13069-949b-7353-b1bb-2d181f441db0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-88e3-7296-af4f-6b32291fd002",
+        "kind": "create",
+        "payload": { "nodeKind": "folder", "parentId": null, "name": "Projects", "position": "a0" },
+        "baseMetaRev": 1,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T13:59:43.123Z"
+      }
+    },
+    {
+      "description": "create document without a checksum",
+      "operation": {
+        "opId": "01a13069-9883-73fe-82fd-97fadd0f719e",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "create",
+        "payload": {
+          "nodeKind": "document",
+          "parentId": null,
+          "name": "a.md",
+          "position": "a0",
+          "format": "markdown"
+        },
+        "baseMetaRev": null,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T13:59:44.123Z"
+      }
+    },
+    {
+      "description": "create folder with a document-only field (unknown keys are rejected)",
+      "operation": {
+        "opId": "01a13069-949b-7353-b1bb-2d181f441db0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-88e3-7296-af4f-6b32291fd002",
+        "kind": "create",
+        "payload": {
+          "nodeKind": "folder",
+          "parentId": null,
+          "name": "Projects",
+          "position": "a0",
+          "format": "plain"
+        },
+        "baseMetaRev": null,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T13:59:43.123Z"
+      }
+    },
+    {
+      "description": "create with an unsupported format",
+      "operation": {
+        "opId": "01a13069-9883-73fe-82fd-97fadd0f719e",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "create",
+        "payload": {
+          "nodeKind": "document",
+          "parentId": null,
+          "name": "a.rs",
+          "position": "a0",
+          "format": "rust",
+          "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "baseMetaRev": null,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T13:59:44.123Z"
+      }
+    },
+    {
+      "description": "update_content carrying the text (the payload holds only the checksum)",
+      "operation": {
+        "opId": "01a13069-a053-783a-bb3f-0953c745dd28",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "update_content",
+        "payload": {
+          "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "format": "plain",
+          "text": ""
+        },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:01.000Z"
+      }
+    },
+    {
+      "description": "update_content with an uppercase checksum",
+      "operation": {
+        "opId": "01a13069-a053-783a-bb3f-0953c745dd28",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "update_content",
+        "payload": {
+          "checksum": "sha256:E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "format": "plain"
+        },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:01.000Z"
+      }
+    },
+    {
+      "description": "rename to a blank name",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "   " },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "rename to a name containing a line break",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "two\nlines" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "move to an invalid position key (trailing zero)",
+      "operation": {
+        "opId": "01a13069-a823-7234-b2bd-e3374b11b125",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-90b3-7a92-863e-03699be400f4",
+        "kind": "move",
+        "payload": { "parentId": null, "position": "a00" },
+        "baseMetaRev": 1,
+        "baseContentRev": 1,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:03.000Z"
+      }
+    },
+    {
+      "description": "move a node into itself",
+      "operation": {
+        "opId": "01a13069-a823-7234-b2bd-e3374b11b125",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-88e3-7296-af4f-6b32291fd002",
+        "kind": "move",
+        "payload": { "parentId": "01a13069-88e3-7296-af4f-6b32291fd002", "position": "a0" },
+        "baseMetaRev": 1,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:03.000Z"
+      }
+    },
+    {
+      "description": "pin without a pin position",
+      "operation": {
+        "opId": "01a13069-aff3-79b4-8205-6ef98d7c55cb",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "pin",
+        "payload": { "pinned": true, "pinPosition": null },
+        "baseMetaRev": 4,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:05.000Z"
+      }
+    },
+    {
+      "description": "unpin that keeps a pin position",
+      "operation": {
+        "opId": "01a13069-b3db-7888-81a7-b94f983a3928",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "pin",
+        "payload": { "pinned": false, "pinPosition": "a0" },
+        "baseMetaRev": 5,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:06.000Z"
+      }
+    },
+    {
+      "description": "delete with a timestamp lacking milliseconds",
+      "operation": {
+        "opId": "01a1306a-0001-7000-8000-000000000001",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-88e3-7296-af4f-6b32291fd002",
+        "kind": "delete",
+        "payload": {
+          "trashBatchId": "01a1306a-0001-7000-8000-0000000000b1",
+          "deletedAt": "2026-10-12T14:01:00Z"
+        },
+        "baseMetaRev": 6,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:01:00.000Z"
+      }
+    },
+    {
+      "description": "restore without the trash batch",
+      "operation": {
+        "opId": "01a1306a-0001-7000-8000-000000000002",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-88e3-7296-af4f-6b32291fd002",
+        "kind": "restore",
+        "payload": {},
+        "baseMetaRev": 7,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:02:00.000Z"
+      }
+    },
+    {
+      "description": "purge with payload fields",
+      "operation": {
+        "opId": "01a1306a-0001-7000-8000-000000000003",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-90b3-7a92-863e-03699be400f4",
+        "kind": "purge",
+        "payload": { "trashBatchId": "01a1306a-0001-7000-8000-0000000000b1" },
+        "baseMetaRev": 8,
+        "baseContentRev": 2,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "system",
+        "createdAt": "2026-11-11T14:02:00.000Z"
+      }
+    },
+    {
+      "description": "purge without a payload",
+      "operation": {
+        "opId": "01a1306a-0001-7000-8000-000000000003",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-90b3-7a92-863e-03699be400f4",
+        "kind": "purge",
+        "baseMetaRev": 8,
+        "baseContentRev": 2,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "system",
+        "createdAt": "2026-11-11T14:02:00.000Z"
+      }
+    },
+    {
+      "description": "unknown operation kind",
+      "operation": {
+        "opId": "01a1306a-0001-7000-8000-000000000004",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-90b3-7a92-863e-03699be400f4",
+        "kind": "copy",
+        "payload": {},
+        "baseMetaRev": null,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:02:00.000Z"
+      }
+    },
+    {
+      "description": "actorKind agent (agents act only through the server, never through the local queue)",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "renamed.md" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "agent",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "uppercase opId",
+      "operation": {
+        "opId": "01A13069-A43B-733A-B2AF-81BD5614F3A0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "renamed.md" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "local bookkeeping column (seq) is not part of the contract",
+      "operation": {
+        "seq": 42,
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "renamed.md" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "negative base revision",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "renamed.md" },
+        "baseMetaRev": -1,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "createdAt with a numeric UTC offset instead of Z",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "renamed.md" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000+00:00"
+      }
+    },
+    {
+      "description": "opId is a version 4 UUID (operation IDs are UUIDv7)",
+      "operation": {
+        "opId": "3f0c2a4e-9b1d-4c6e-8f7a-2b5d9e1c0a34",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "renamed.md" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "opId is the nil UUID",
+      "operation": {
+        "opId": "00000000-0000-0000-0000-000000000000",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "renamed.md" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "deviceId is a version 4 UUID (device IDs are UUIDv7)",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "renamed.md" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "3f0c2a4e-9b1d-4c6e-8f7a-2b5d9e1c0a34",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "create of a node whose new ID is a version 4 UUID",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "3f0c2a4e-9b1d-4c6e-8f7a-2b5d9e1c0a34",
+        "kind": "create",
+        "payload": {
+          "nodeKind": "document",
+          "parentId": null,
+          "name": "a.md",
+          "position": "a0",
+          "format": "markdown",
+          "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "baseMetaRev": null,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "delete with a version 4 trash batch ID (new batch IDs are UUIDv7)",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "delete",
+        "payload": {
+          "trashBatchId": "3f0c2a4e-9b1d-4c6e-8f7a-2b5d9e1c0a34",
+          "deletedAt": "2026-10-12T14:01:00.000Z"
+        },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "zero base revision (server revisions start at 1)",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "renamed.md" },
+        "baseMetaRev": 0,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "rename to a name with leading white space (names are sent trimmed)",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": " renamed.md" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "rename to a name ending in U+00A0 (white space)",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": { "name": "renamed.md\u00a0" },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "rename to a name longer than 255 UTF-16 code units (here 256: 254 letters and an emoji)",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "rename",
+        "payload": {
+          "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx😀"
+        },
+        "baseMetaRev": 3,
+        "baseContentRev": 7,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    }
+  ],
+  "needsRebase": [
+    {
+      "description": "rename of a node whose create is not acknowledged yet (null base revisions)",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-90b3-7a92-863e-03699be400f4",
+        "kind": "rename",
+        "payload": { "name": "renamed.md" },
+        "baseMetaRev": null,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "move of a never-synced folder",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-88e3-7296-af4f-6b32291fd002",
+        "kind": "move",
+        "payload": { "parentId": null, "position": "a1" },
+        "baseMetaRev": null,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    },
+    {
+      "description": "update_content without the content revision it was made against",
+      "operation": {
+        "opId": "01a13069-a43b-733a-b2af-81bd5614f3a0",
+        "workspaceId": "01a13069-8113-7d4b-b45c-a607c0eb8f23",
+        "nodeId": "01a13069-8ccb-704d-b1f6-079e37aa44d2",
+        "kind": "update_content",
+        "payload": {
+          "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "format": "plain"
+        },
+        "baseMetaRev": 3,
+        "baseContentRev": null,
+        "deviceId": "01a13069-84fb-75e2-ab6f-dba1d5a80d3e",
+        "actorKind": "user",
+        "createdAt": "2026-10-12T14:00:02.000Z"
+      }
+    }
+  ]
+}

@@ -10,7 +10,8 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "fixtures": "node scripts/generate-fixtures.ts"
   },
   "dependencies": {
     "zod": "4.6.6"
