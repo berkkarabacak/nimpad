@@ -6,19 +6,19 @@ line endings, and has a top-level `description` string that consumers ignore.
 
 Every implementation of a contract must pass its fixture: the TypeScript one (`packages/contracts`, used by the
 API, MCP server and worker) and the desktop's C# one (`apps/windows/src/NimPad.Core`). The TypeScript tests
-(`packages/contracts/test`) read every file. The C# tests (`apps/windows/tests/NimPad.Core.Tests`, which copy
-`*.json` from here next to the test assembly) currently read only the files marked "yes" below; the others still
-need a C# test.
+(`packages/contracts/test`) read every file, and so do the C# tests (`apps/windows/tests/NimPad.Core.Tests`, which
+copy `*.json` from here next to the test assembly; see `ContractFixtureTests` and the per-contract test classes).
+A new fixture file needs a test on both sides.
 
 | File | Produced by | Contract | Read by the C# tests |
 |---|---|---|---|
 | `fractional-index.json` | generated | `generateKeyBetween` / `generateNKeysBetween` | yes |
 | `checksum.json` | generated | `canonicalizeText` / `contentChecksum` | yes |
-| `note-text.json` | generated | `isStorableText` / `toStorableText` / checksum of unstorable text | not yet |
-| `node-names.json` | generated | `NodeName` / `normalizeNodeName` (C#: `NodeNames.Normalize`) | not yet |
-| `formats.json` | generated | `detectFormat` (C#: `DocumentFormats.FromName`) | not yet |
-| `note-links.json` | generated | `findNoteLinks` (C#: `LinkParser.FindLinks`) | not yet |
-| `pending-operations.json` | hand-written | `PendingOperation` / `PushOperation` shapes and validation | not yet |
+| `note-text.json` | generated | `isStorableText` / `toStorableText` / checksum of unstorable text | yes |
+| `node-names.json` | generated | `NodeName` / `normalizeNodeName` (C#: `NodeNames.Normalize`) | yes |
+| `formats.json` | generated | `detectFormat` (C#: `DocumentFormats.FromName`) | yes |
+| `note-links.json` | generated | `findNoteLinks` (C#: `LinkParser.FindLinks`) | yes |
+| `pending-operations.json` | hand-written | `PendingOperation` / `PushOperation` shapes and validation | yes |
 
 Generated files are rebuilt by `pnpm --filter @nimpad/contracts fixtures` from the inputs in
 `scripts/fixture-builders.ts`; never edit them by hand. A test fails if a committed generated file differs from

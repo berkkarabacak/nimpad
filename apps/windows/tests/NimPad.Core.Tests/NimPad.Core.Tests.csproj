@@ -10,4 +10,8 @@
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The shared contract fixtures (packages/contracts/fixtures); the TypeScript tests read the same files. -->
+    <None Include="..\..\..\..\packages\contracts\fixtures\*.json" LinkBase="fixtures" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
