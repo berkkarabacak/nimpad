@@ -1,0 +1,11 @@
+packages:
+  - packages/*
+  - services/*
+  - database
+  - tests/database
+
+overrides:
+  zod: 4.6.6
+
+onlyBuiltDependencies:
+  - esbuild

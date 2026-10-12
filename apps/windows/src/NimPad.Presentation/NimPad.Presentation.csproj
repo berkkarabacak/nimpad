@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- View models. Platform-neutral so they can be unit tested on any OS; no WPF references. -->
+  <ItemGroup>
+    <ProjectReference Include="..\NimPad.Core\NimPad.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NimPad.Presentation.Tests" />
+  </ItemGroup>
+</Project>

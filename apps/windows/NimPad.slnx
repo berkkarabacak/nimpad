@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NimPad.Core/NimPad.Core.csproj" />
+    <Project Path="src/NimPad.Presentation/NimPad.Presentation.csproj" />
+    <Project Path="src/NimPad.App/NimPad.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NimPad.Core.Tests/NimPad.Core.Tests.csproj" />
+    <Project Path="tests/NimPad.Presentation.Tests/NimPad.Presentation.Tests.csproj" />
+    <Project Path="tests/NimPad.App.Tests/NimPad.App.Tests.csproj" />
+    <Project Path="../../tests/e2e-windows/NimPad.E2E/NimPad.E2E.csproj" />
+  </Folder>
+</Solution>

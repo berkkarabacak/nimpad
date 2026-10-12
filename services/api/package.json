@@ -1,0 +1,28 @@
+{
+  "name": "@nimpad/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NimPad cloud REST API (Fastify).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=../../.env src/main.ts",
+    "start": "node src/main.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nimpad/contracts": "workspace:*",
+    "fastify": "5.12.5",
+    "pg": "8.23.1",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "typescript": "7.0.2",
+    "vitest": "5.0.4"
+  }
+}

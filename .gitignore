@@ -1,0 +1,30 @@
+# Node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vitest/
+
+# .NET
+bin/
+obj/
+artifacts/
+TestResults/
+*.user
+*.suo
+.vs/
+*.binlog
+
+# Local env / data
+.env
+.env.*.local
+*.db
+*.db-wal
+*.db-shm
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

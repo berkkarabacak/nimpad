@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The Windows desktop application (WPF + AvalonEdit). -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>NimPad</AssemblyName>
+    <RootNamespace>NimPad.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NimPad.Presentation\NimPad.Presentation.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AvalonEdit" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NimPad.App.Tests" />
+  </ItemGroup>
+</Project>

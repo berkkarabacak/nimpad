@@ -1,0 +1,23 @@
+{
+  "name": "@nimpad/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared API schemas, content checksum and fractional-index ordering used by every NimPad component.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./fixtures/*": "./fixtures/*"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "7.0.2",
+    "vitest": "5.0.4"
+  }
+}

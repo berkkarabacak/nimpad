@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Domain model, local SQLite storage, services and the pending-operation queue. Cross-platform. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NimPad.Core.Tests" />
+  </ItemGroup>
+</Project>

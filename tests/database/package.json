@@ -1,0 +1,21 @@
+{
+  "name": "@nimpad/database-tests",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Integration tests that run the migrations against a real PostgreSQL and check RLS, cycles and sync sequencing.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nimpad/database": "workspace:*",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "typescript": "7.0.2",
+    "vitest": "5.0.4"
+  }
+}
