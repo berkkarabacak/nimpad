@@ -377,10 +377,17 @@ describe(`database role and row-level security (${maskUrl(TEST_DATABASE_URL)})`,
 
   it('rejects a superuser (the owner URL), naming the problem', async (context) => {
     context.skip(unreachable !== null, skipReason);
-    const error = await checkDatabaseRole(pool(db().ownerUrl)).catch((e: unknown) => e);
+    const owner = pool(db().ownerUrl);
+    // The official postgres image creates its bootstrap superuser with BYPASSRLS as well, while a role created
+    // with plain SUPERUSER lacks it. Every problem that applies is reported, so expect exactly the role's own.
+    const { rows } = await owner.query<{ bypassRls: boolean }>(
+      'SELECT rolbypassrls AS "bypassRls" FROM pg_catalog.pg_roles WHERE rolname = current_user',
+    );
+    const error = await checkDatabaseRole(owner).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(UnsafeDatabaseRoleError);
     expect((error as UnsafeDatabaseRoleError).problems).toEqual([
       'it is a superuser, so row-level security does not apply',
+      ...(rows[0]?.bypassRls ? ['it has BYPASSRLS, so row-level security does not apply'] : []),
     ]);
   });
 
