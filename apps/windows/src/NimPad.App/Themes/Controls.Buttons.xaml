@@ -1,0 +1,423 @@
+<!--
+    Buttons (deck p-25 / p-26). One shared template; each keyed style sets the colors of its states:
+      default -> hover (IsMouseOver or c:Ui.ForceHover) -> pressed (IsPressed or c:Ui.ForcePressed)
+      focused: outside Accent ring (FocusVisual*), disabled: 40% opacity (WPF never focuses disabled elements).
+    Content may be text, c:Ui.Icon (24-grid geometry) or both: <Button Style="{StaticResource SecondaryButton}"
+    c:Ui.Icon="{StaticResource Sync}" Content="Sync now" />. Icon-only buttons need AutomationProperties.Name.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+                    xmlns:c="clr-namespace:NimPad.App.Controls"
+                    xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+                    mc:Ignorable="po">
+
+    <!-- Close button glyph and pressed fill: fixed white on the Windows close red in both themes. -->
+    <SolidColorBrush x:Key="CloseTitleBarGlyphBrush" Color="#FFFFFFFF" po:Freeze="True" />
+    <SolidColorBrush x:Key="CloseTitleBarPressedBrush" Color="#E6C42B1C" po:Freeze="True" />
+
+    <!--
+        Shared button template: a fill layer, an edge layer drawn over it (so "wash + 1 px inset line" composes like
+        the deck), then [icon][content]. Colors come from Background / BorderBrush / Foreground.
+    -->
+    <ControlTemplate x:Key="KitButtonTemplate" TargetType="ButtonBase">
+        <Grid x:Name="Root" SnapsToDevicePixels="True">
+            <Border x:Name="Fill" Background="{TemplateBinding Background}"
+                    CornerRadius="{TemplateBinding c:Ui.CornerRadius}" />
+            <Border x:Name="Edge" BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding c:Ui.CornerRadius}" />
+            <DockPanel x:Name="Layout" Margin="{TemplateBinding Padding}"
+                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                <c:Icon x:Name="Glyph" DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center"
+                        Data="{TemplateBinding c:Ui.Icon}" Size="{TemplateBinding c:Ui.IconSize}"
+                        StrokeThickness="{TemplateBinding c:Ui.IconStrokeThickness}" />
+                <ContentPresenter x:Name="Content" VerticalAlignment="Center" RecognizesAccessKey="True"
+                                  Focusable="False" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+            </DockPanel>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="c:Ui.Icon" Value="{x:Null}">
+                <Setter TargetName="Glyph" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="Content" Value="{x:Null}">
+                <Setter TargetName="Glyph" Property="Margin" Value="0" />
+                <Setter TargetName="Content" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Base for every button style below (also usable for custom ButtonBase styles via BasedOn). -->
+    <Style x:Key="ButtonBaseStyle" TargetType="ButtonBase">
+        <Setter Property="Template" Value="{StaticResource KitButtonTemplate}" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Padding" Value="16,0" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="UseLayoutRounding" Value="True" />
+        <Setter Property="c:Ui.CornerRadius" Value="6" />
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.4" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Primary: Accent fill, OnAccent text. Accent -> AccentHover -> AccentPressed. One per surface. -->
+    <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+        <Setter Property="MinWidth" Value="64" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForceHover" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForcePressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Secondary: Hover wash + 1 px Line inset. Hover -> Press wash; pressed adds a Line2 inset. -->
+    <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="MinWidth" Value="64" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForceHover" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Line2Brush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForcePressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Line2Brush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Quiet: text only until hovered (dialog Cancel, toolbar actions). -->
+    <Style x:Key="QuietButton" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="MinWidth" Value="64" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForceHover" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForcePressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Destructive: secondary shape with Err text/icon; hover and press tint to ErrSoft ("Delete forever"). -->
+    <Style x:Key="DestructiveButton" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Foreground" Value="{DynamicResource ErrBrush}" />
+        <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="MinWidth" Value="64" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ErrSoftBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForceHover" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ErrSoftBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ErrSoftBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Line2Brush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForcePressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ErrSoftBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Line2Brush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Small (26 px, inline actions such as Replace / Restore). Same looks, tighter padding, 13 px text. -->
+    <Style x:Key="SmallButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="c:Ui.IconSize" Value="14" />
+    </Style>
+    <Style x:Key="SmallPrimaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="c:Ui.IconSize" Value="14" />
+    </Style>
+    <Style x:Key="SmallQuietButton" TargetType="Button" BasedOn="{StaticResource QuietButton}">
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="c:Ui.IconSize" Value="14" />
+    </Style>
+    <Style x:Key="SmallDestructiveButton" TargetType="Button" BasedOn="{StaticResource DestructiveButton}">
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="c:Ui.IconSize" Value="14" />
+    </Style>
+
+    <!-- Large (44 px): the one welcome button ("Continue with Google"). Primary look, 14 / 600. -->
+    <Style x:Key="LargeButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="Height" Value="44" />
+        <Setter Property="Padding" Value="20,0" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="MinWidth" Value="120" />
+    </Style>
+
+    <!-- Link: Accent text, no fill ("Undo", "Resolve", "Retry", "Clear search"). -->
+    <Style x:Key="LinkButton" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Height" Value="Auto" />
+        <Setter Property="MinHeight" Value="20" />
+        <Setter Property="Padding" Value="2,0" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisualSmall}" />
+        <Setter Property="c:Ui.CornerRadius" Value="4" />
+        <Setter Property="c:Ui.IconSize" Value="14" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource AccentHoverBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForceHover" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource AccentHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource AccentPressedBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForcePressed" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource AccentPressedBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Icon button: 28 x 28, radius 6, Text2 glyph that turns Text on hover. Set c:Ui.Icon + AutomationProperties.Name. -->
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Width" Value="28" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Foreground" Value="{DynamicResource Text2Brush}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForceHover" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForcePressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Small icon button: 20 x 20, radius 4 (tab close, search clear, banner dismiss). -->
+    <Style x:Key="SmallIconButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="c:Ui.CornerRadius" Value="4" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisualSmall}" />
+    </Style>
+
+    <!-- New-tab button: 30 x 30 with the Plus glyph preset; hit-testable inside WindowChrome caption areas. -->
+    <Style x:Key="NewTabButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="Width" Value="30" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="c:Ui.Icon" Value="{DynamicResource Plus}" />
+        <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+    </Style>
+
+    <!-- Icon toggle (find options, sidebar toggle): checked = AccentSoft fill + Accent glyph. -->
+    <Style x:Key="IconToggleButton" TargetType="ToggleButton" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Width" Value="28" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Foreground" Value="{DynamicResource Text2Brush}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForceHover" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForcePressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--
+        Filter chip (ToggleButton): 28 px pill. Unchecked = 1 px Line2 outline; checked = AccentSoft + Accent text.
+    -->
+    <Style x:Key="FilterChip" TargetType="ToggleButton" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Line2Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisualPill}" />
+        <Setter Property="c:Ui.CornerRadius" Value="14" />
+        <Setter Property="c:Ui.IconSize" Value="14" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForceHover" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForcePressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--
+        Window controls: 46 x 40, square, 1 px glyphs (Minimize, Maximize / RestoreWindow, WindowClose).
+        Not tab stops (Alt+Space opens the system menu). Dim to Text3 while c:Ui.IsWindowActive is false.
+        For Snap Layouts, drive the maximize button's hover/pressed look with c:Ui.ForceHover / c:Ui.ForcePressed.
+    -->
+    <Style x:Key="TitleBarButton" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Width" Value="46" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="c:Ui.CornerRadius" Value="0" />
+        <Setter Property="c:Ui.IconStrokeThickness" Value="1" />
+        <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+        <Style.Triggers>
+            <Trigger Property="c:Ui.IsWindowActive" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource Text3Brush}" />
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForceHover" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForcePressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Close window control: CloseHover red with a white glyph on hover and press. -->
+    <Style x:Key="CloseTitleBarButton" TargetType="Button" BasedOn="{StaticResource TitleBarButton}">
+        <Setter Property="c:Ui.Icon" Value="{DynamicResource WindowClose}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource CloseHoverBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource CloseTitleBarGlyphBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForceHover" Value="True">
+                <Setter Property="Background" Value="{DynamicResource CloseHoverBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource CloseTitleBarGlyphBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{StaticResource CloseTitleBarPressedBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource CloseTitleBarGlyphBrush}" />
+            </Trigger>
+            <Trigger Property="c:Ui.ForcePressed" Value="True">
+                <Setter Property="Background" Value="{StaticResource CloseTitleBarPressedBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource CloseTitleBarGlyphBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Stepper's - and + parts (used by the Stepper template; not focusable, repeat while held). -->
+    <Style x:Key="StepperButton" TargetType="RepeatButton" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Width" Value="30" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Delay" Value="400" />
+        <Setter Property="Interval" Value="80" />
+        <Setter Property="Foreground" Value="{DynamicResource Text2Brush}" />
+        <Setter Property="c:Ui.CornerRadius" Value="4" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--
+        Implicit fallback so an unstyled Button still matches the kit in both themes (SecondaryButton look).
+        There is deliberately no implicit ToggleButton/RepeatButton style: other controls' templates use them.
+    -->
+    <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}" />
+
+</ResourceDictionary>

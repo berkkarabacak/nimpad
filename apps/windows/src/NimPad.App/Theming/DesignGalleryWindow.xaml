@@ -1,0 +1,37 @@
+<!--
+    Internal design gallery: every token, type style, icon and control of the kit in every state, in either
+    theme. Used by NimPad.App.Tests (constructs, measures and arranges it in both themes) and by humans
+    inspecting the kit. It merges its own token set and design system, so it works with or without App.xaml.
+    Only DynamicResource is used here: the dictionaries are merged after InitializeComponent.
+-->
+<Window x:Class="NimPad.App.Theming.DesignGalleryWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:NimPad.App.Controls"
+        Title="NimPad design gallery" Width="1240" Height="860" MinWidth="400" MinHeight="300"
+        Style="{DynamicResource AppWindow}"
+        AutomationProperties.AutomationId="DesignGallery">
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="{DynamicResource ChromeBrush}" Padding="24,10">
+            <DockPanel>
+                <c:SegmentedControl x:Name="ThemeSwitch" DockPanel.Dock="Right"
+                                    AutomationProperties.Name="Theme" AutomationProperties.AutomationId="GalleryTheme">
+                    <c:SegmentedControlItem Content="Light" />
+                    <c:SegmentedControlItem Content="Dark" />
+                </c:SegmentedControl>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Width="18" Height="18" Source="{DynamicResource AppMarkImage}" />
+                    <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="NimPad design system"
+                               Style="{DynamicResource SubtitleText}" />
+                    <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Text="tokens, type, icons and controls in every state"
+                               Style="{DynamicResource CaptionText}" Foreground="{DynamicResource Text3Brush}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+        <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                      Focusable="False">
+            <StackPanel x:Name="Sections" Margin="24" />
+        </ScrollViewer>
+    </DockPanel>
+</Window>

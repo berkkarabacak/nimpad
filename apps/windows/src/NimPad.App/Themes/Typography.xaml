@@ -1,0 +1,147 @@
+<!--
+    NimPad type ramp (docs/design/tokens.md, "Type"). Sizes are DIPs at 100% scale.
+    Every TextBlock style sets family, size, weight and an exact line height (BlockLineHeight), never a color:
+    pick the foreground from the tokens (TextBrush, Text2Brush, Text3Brush, ...).
+    Letter spacing from the deck (Display -0.02em, Micro +0.06em) is omitted: WPF TextBlock has no tracking.
+    MicroText is an ALL-CAPS label style: pass uppercase strings ("YESTERDAY"); WPF cannot transform case.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <!-- Families. Cascadia Mono ships with Windows 11; nothing is bundled. -->
+    <FontFamily x:Key="UiFontFamily">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="EditorFontFamily">Cascadia Mono, Consolas, Courier New</FontFamily>
+
+    <!-- Sizes -->
+    <sys:Double x:Key="DisplayFontSize">44</sys:Double>
+    <sys:Double x:Key="PageTitleFontSize">24</sys:Double>
+    <sys:Double x:Key="DialogTitleFontSize">20</sys:Double>
+    <sys:Double x:Key="SubtitleFontSize">16</sys:Double>
+    <sys:Double x:Key="BodyFontSize">14</sys:Double>
+    <sys:Double x:Key="ControlFontSize">13.5</sys:Double>
+    <sys:Double x:Key="TabFontSize">13</sys:Double>
+    <sys:Double x:Key="SecondaryFontSize">12.5</sys:Double>
+    <sys:Double x:Key="CaptionFontSize">12</sys:Double>
+    <sys:Double x:Key="TimestampFontSize">11.5</sys:Double>
+    <sys:Double x:Key="MicroFontSize">11</sys:Double>
+    <sys:Double x:Key="EditorFontSize">14</sys:Double>
+
+    <!-- Line heights -->
+    <sys:Double x:Key="DisplayLineHeight">48</sys:Double>
+    <sys:Double x:Key="PageTitleLineHeight">32</sys:Double>
+    <sys:Double x:Key="DialogTitleLineHeight">26</sys:Double>
+    <sys:Double x:Key="SubtitleLineHeight">22</sys:Double>
+    <sys:Double x:Key="BodyLineHeight">20</sys:Double>
+    <sys:Double x:Key="ControlLineHeight">18</sys:Double>
+    <sys:Double x:Key="TabLineHeight">18</sys:Double>
+    <sys:Double x:Key="SecondaryLineHeight">17</sys:Double>
+    <sys:Double x:Key="CaptionLineHeight">16</sys:Double>
+    <sys:Double x:Key="TimestampLineHeight">16</sys:Double>
+    <sys:Double x:Key="MicroLineHeight">14</sys:Double>
+    <sys:Double x:Key="EditorLineHeight">22</sys:Double>
+
+    <!-- Base: the UI family with exact line boxes. -->
+    <Style x:Key="TextBase" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
+    </Style>
+
+    <!-- 44 / 48, 600. Welcome headline only. -->
+    <Style x:Key="DisplayText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource DisplayFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource DisplayLineHeight}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- 24 / 32, 600. Settings page heading, sheet titles. -->
+    <Style x:Key="PageTitleText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource PageTitleFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource PageTitleLineHeight}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- 20 / 26, 600. Dialog and panel headings. -->
+    <Style x:Key="DialogTitleText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource DialogTitleFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource DialogTitleLineHeight}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- 16 / 22, 600. Status headings, card titles. -->
+    <Style x:Key="SubtitleText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource SubtitleFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource SubtitleLineHeight}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- 14 / 20, 400. General UI text. -->
+    <Style x:Key="BodyText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource BodyLineHeight}" />
+    </Style>
+
+    <!-- 14 / 20, 500. Settings labels. -->
+    <Style x:Key="BodyLabelText" TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
+        <Setter Property="FontWeight" Value="Medium" />
+    </Style>
+
+    <!-- 13.5 / 18, 500. Buttons, menu items, list names. -->
+    <Style x:Key="ControlText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource ControlFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource ControlLineHeight}" />
+        <Setter Property="FontWeight" Value="Medium" />
+    </Style>
+
+    <!-- 13.5 / 18, 600. Names: note titles in rows. -->
+    <Style x:Key="ControlNameText" TargetType="TextBlock" BasedOn="{StaticResource ControlText}">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- 13 / 18, 400. Tab titles, chips, sidebar search. -->
+    <Style x:Key="TabText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource TabFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource TabLineHeight}" />
+    </Style>
+
+    <!-- 13 / 18, 500. The selected tab's title. -->
+    <Style x:Key="TabSelectedText" TargetType="TextBlock" BasedOn="{StaticResource TabText}">
+        <Setter Property="FontWeight" Value="Medium" />
+    </Style>
+
+    <!-- 12.5 / 17, 400. Setting descriptions, note previews. -->
+    <Style x:Key="SecondaryText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource SecondaryFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource SecondaryLineHeight}" />
+    </Style>
+
+    <!-- 12 / 16, 400. Status bar, helper text, footers. -->
+    <Style x:Key="CaptionText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource CaptionFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource CaptionLineHeight}" />
+    </Style>
+
+    <!-- 11 / 14, 600, caps. Sidebar group labels. Pass UPPERCASE text. -->
+    <Style x:Key="MicroText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource MicroFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource MicroLineHeight}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- 11.5 / 16, 400. Row timestamps ("2:14 PM", "Fri"). -->
+    <Style x:Key="TimestampText" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+        <Setter Property="FontSize" Value="{StaticResource TimestampFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource TimestampLineHeight}" />
+    </Style>
+
+    <!-- 14 / 22, 400, mono. Editor-like text outside the editor (previews, key caps use their own control). -->
+    <Style x:Key="EditorText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource EditorFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource EditorFontSize}" />
+        <Setter Property="LineHeight" Value="{StaticResource EditorLineHeight}" />
+        <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
+        <Setter Property="FontWeight" Value="Normal" />
+    </Style>
+
+</ResourceDictionary>

@@ -1,0 +1,21 @@
+<!--
+    The NimPad design system, minus the token colors. App.xaml merges a token set (Tokens.Light / Tokens.Dark)
+    FIRST and this dictionary after it; ThemeService swaps the token set at runtime. Nothing in here uses
+    StaticResource across files: theme-dependent and cross-file values are DynamicResource, so the dictionaries
+    can be merged in any host (application, window, test). See Themes/README.md for every key.
+-->
+<ResourceDictionary x:Class="NimPad.App.Themes.DesignSystem"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/NimPad;component/Themes/Typography.xaml" />
+        <ResourceDictionary Source="/NimPad;component/Themes/Metrics.xaml" />
+        <ResourceDictionary Source="/NimPad;component/Themes/Icons.xaml" />
+        <ResourceDictionary Source="/NimPad;component/Themes/Controls.Base.xaml" />
+        <ResourceDictionary Source="/NimPad;component/Themes/Controls.Buttons.xaml" />
+        <ResourceDictionary Source="/NimPad;component/Themes/Controls.Inputs.xaml" />
+        <ResourceDictionary Source="/NimPad;component/Themes/Controls.Menus.xaml" />
+        <ResourceDictionary Source="/NimPad;component/Themes/Controls.Lists.xaml" />
+        <ResourceDictionary Source="/NimPad;component/Themes/Controls.Surfaces.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>
