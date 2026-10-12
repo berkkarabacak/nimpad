@@ -1,0 +1,120 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  backend:
+    name: Backend (TypeScript + PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: nimpad
+          POSTGRES_PASSWORD: nimpad
+          POSTGRES_DB: nimpad
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nimpad -d nimpad"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    env:
+      NIMPAD_REQUIRE_DB: "1"
+      DATABASE_URL_MIGRATE: postgres://nimpad:nimpad@127.0.0.1:5432/nimpad
+      DATABASE_URL_ADMIN: postgres://nimpad:nimpad@127.0.0.1:5432/postgres
+      DATABASE_URL_TEST: postgres://nimpad:nimpad@127.0.0.1:5432/nimpad
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint and format check
+        run: pnpm lint
+      - name: Type check
+        run: pnpm typecheck
+      - name: Migrate (twice, to prove idempotence)
+        run: |
+          pnpm db:migrate
+          pnpm db:migrate
+      - name: Test
+        run: pnpm test
+
+  dotnet-linux:
+    name: Desktop core (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Format check
+        run: dotnet format apps/windows/NimPad.slnx --verify-no-changes --verbosity minimal
+      - name: Build (WPF compiles via EnableWindowsTargeting)
+        run: dotnet build apps/windows/NimPad.slnx -c Release
+      - name: Test core
+        run: dotnet test --project apps/windows/tests/NimPad.Core.Tests -c Release --no-build
+      - name: Test presentation
+        run: dotnet test --project apps/windows/tests/NimPad.Presentation.Tests -c Release --no-build
+
+  windows:
+    name: Windows app (build, tests, UI automation, portable build)
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Build
+        run: dotnet build apps/windows/NimPad.slnx -c Release
+      - name: Test core
+        run: dotnet test --project apps/windows/tests/NimPad.Core.Tests -c Release --no-build
+      - name: Test presentation
+        run: dotnet test --project apps/windows/tests/NimPad.Presentation.Tests -c Release --no-build
+      - name: Test XAML resources and windows
+        run: dotnet test --project apps/windows/tests/NimPad.App.Tests -c Release --no-build
+      - name: End-to-end UI tests
+        env:
+          NIMPAD_EXE: ${{ github.workspace }}\apps\windows\src\NimPad.App\bin\Release\net10.0-windows\NimPad.exe
+          NIMPAD_E2E_ARTIFACTS: ${{ github.workspace }}\e2e-artifacts
+        run: dotnet test --project tests/e2e-windows/NimPad.E2E -c Release --no-build
+      - name: Upload UI test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: e2e-artifacts
+          if-no-files-found: ignore
+      - name: Publish portable build
+        shell: pwsh
+        run: |
+          dotnet publish apps/windows/src/NimPad.App/NimPad.App.csproj -c Release -r win-x64 --self-contained true `
+            -p:PublishReadyToRun=true -o artifacts/NimPad-portable
+          New-Item -ItemType File -Path artifacts/NimPad-portable/portable.txt -Force | Out-Null
+          Compress-Archive -Path artifacts/NimPad-portable/* -DestinationPath artifacts/NimPad-portable-win-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NimPad-portable-win-x64
+          path: artifacts/NimPad-portable-win-x64.zip
