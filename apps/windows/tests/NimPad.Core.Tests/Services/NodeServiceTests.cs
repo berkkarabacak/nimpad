@@ -24,6 +24,48 @@ public sealed class NodeServiceTests : IAsyncLifetime
         return ValueTask.CompletedTask;
     }
 
+    // ------------------------------------------------------------ reads
+
+    [Fact]
+    public async Task GetNodesReturnsExistingNodesInAnyStateInOneCall()
+    {
+        var folder = await Nodes.CreateFolderAsync(Ws, null, "Folder");
+        var live = await Nodes.CreateDocumentAsync(Ws, folder.Id, "Live");
+        var trashed = await Nodes.CreateDocumentAsync(Ws, null, "Trashed");
+        await Nodes.TrashAsync([trashed.Id]);
+        var missing = NodeId.New();
+
+        var nodes = await Nodes.GetNodesAsync([live.Id, trashed.Id, missing, live.Id, folder.Id]);
+
+        Assert.Equal(
+            new[] { folder.Id, live.Id, trashed.Id }.Select(id => id.ToString()).Order(),
+            nodes.Select(node => node.Id.ToString()).Order());
+        Assert.True(nodes.Single(node => node.Id == trashed.Id).IsTrashed);
+        Assert.Equal(await Nodes.GetNodeAsync(live.Id), nodes.Single(node => node.Id == live.Id));
+        Assert.Empty(await Nodes.GetNodesAsync([]));
+    }
+
+    [Fact]
+    public async Task GetPreviewsReturnsTheStoredPreviewLines()
+    {
+        var folder = await Nodes.CreateFolderAsync(Ws, null, "Folder");
+        var first = await Nodes.CreateDocumentAsync(Ws, folder.Id, "First", initialText: "\n  Hello world\nsecond line");
+        var empty = await Nodes.CreateDocumentAsync(Ws, null, "Empty");
+        var trashed = await Nodes.CreateDocumentAsync(Ws, null, "Trashed", initialText: "gone soon");
+        await Nodes.TrashAsync([trashed.Id]);
+        await _store.Documents.SaveContentAsync(empty.Id, "now filled");
+
+        var all = await _store.Documents.GetPreviewsAsync(Ws);
+        var some = await _store.Documents.GetPreviewsAsync([first.Id, folder.Id, NodeId.New()]);
+
+        Assert.Equal(3, all.Count);
+        Assert.Equal(DocumentPreview.Create("\n  Hello world\nsecond line"), all[first.Id]);
+        Assert.Equal("now filled", all[empty.Id]);
+        Assert.Equal("gone soon", all[trashed.Id]);
+        Assert.Equal(all[first.Id], Assert.Single(some).Value);
+        Assert.Empty(await _store.Documents.GetPreviewsAsync(Array.Empty<NodeId>()));
+    }
+
     // ------------------------------------------------------------ create
 
     [Fact]

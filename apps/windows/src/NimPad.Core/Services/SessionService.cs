@@ -147,7 +147,8 @@ public sealed class SessionService
 
     /// <summary>
     /// Pushes a closed tab onto the reopen stack, dropping the oldest entries beyond
-    /// <see cref="RecentlyClosedCapacity"/>.
+    /// <see cref="RecentlyClosedCapacity"/>. The entry keeps the tab's view state and its place in the strip
+    /// (<see cref="SessionTab.Order"/>), so reopening can put it back where it was.
     /// </summary>
     /// <returns>The new entry, or <see langword="null"/> when the tab's note no longer exists.</returns>
     public Task<RecentlyClosedTab?> PushRecentlyClosedAsync(SessionTab tab, CancellationToken cancellationToken = default)
@@ -370,6 +371,7 @@ public sealed class SessionService
         var tab = new SessionTab(tabId, nodeId is null ? SessionTabKind.External : SessionTabKind.Managed, nodeId, path, title)
         {
             IsPinned = Get(state, "pinned", false),
+            Order = Math.Max(0, Get(state, "order", 0)),
             CaretOffset = Get(state, "caretOffset", 0),
             SelectionStart = Get(state, "selectionStart", 0),
             SelectionLength = Get(state, "selectionLength", 0),
@@ -396,6 +398,7 @@ public sealed class SessionService
         {
             ["tabId"] = tab.TabId.ToString("D"),
             ["pinned"] = tab.IsPinned,
+            ["order"] = tab.Order,
             ["caretOffset"] = tab.CaretOffset,
             ["selectionStart"] = tab.SelectionStart,
             ["selectionLength"] = tab.SelectionLength,

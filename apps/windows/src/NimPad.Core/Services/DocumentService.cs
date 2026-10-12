@@ -107,6 +107,46 @@ public sealed class DocumentService : IDocumentContentSaver
             cancellationToken);
 
     /// <summary>
+    /// The one-line previews (<see cref="DocumentPreview"/>) of every document in a workspace, live or in the Trash,
+    /// for the sidebar rows. Loaded together with the tree metadata at startup.
+    /// </summary>
+    public Task<IReadOnlyDictionary<NodeId, string>> GetPreviewsAsync(WorkspaceId workspaceId, CancellationToken cancellationToken = default) =>
+        _database.Readers.ExecuteAsync<IReadOnlyDictionary<NodeId, string>>(
+            connection =>
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText =
+                    "SELECT d.node_id, d.preview FROM document_contents d JOIN nodes n ON n.id = d.node_id WHERE n.workspace_id = $ws;";
+                command.With("$ws", workspaceId);
+                return ReadPreviews(command);
+            },
+            cancellationToken);
+
+    /// <summary>
+    /// The one-line previews of the given documents (any state); IDs that are not documents or no longer exist are
+    /// left out. For refreshing sidebar rows after a change notification.
+    /// </summary>
+    public Task<IReadOnlyDictionary<NodeId, string>> GetPreviewsAsync(IReadOnlyCollection<NodeId> nodeIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(nodeIds);
+        if (nodeIds.Count == 0)
+        {
+            return Task.FromResult<IReadOnlyDictionary<NodeId, string>>(new Dictionary<NodeId, string>());
+        }
+
+        var ids = "[" + string.Join(',', nodeIds.Distinct().Select(id => "\"" + id.ToString() + "\"")) + "]";
+        return _database.Readers.ExecuteAsync<IReadOnlyDictionary<NodeId, string>>(
+            connection =>
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT node_id, preview FROM document_contents WHERE node_id IN (SELECT value FROM json_each($ids));";
+                command.With("$ids", ids);
+                return ReadPreviews(command);
+            },
+            cancellationToken);
+    }
+
+    /// <summary>
     /// Saves a document's text unconditionally (see
     /// <see cref="SaveContentAsync(NodeId, string, string?, CancellationToken)"/> with no expected checksum).
     /// </summary>
@@ -340,6 +380,18 @@ public sealed class DocumentService : IDocumentContentSaver
         _queue.EnqueueUpdateContent(context, updated, prepared.Checksum, format, LocalActorKind.User);
         changes.Add(node.WorkspaceId, nodeId, NodeChangeKind.ContentChanged);
         return new DocumentSaveResult(nodeId, true, prepared.Checksum, version + 1, now);
+    }
+
+    private static Dictionary<NodeId, string> ReadPreviews(SqliteCommand command)
+    {
+        using var reader = command.ExecuteReader();
+        var previews = new Dictionary<NodeId, string>();
+        while (reader.Read())
+        {
+            previews[reader.GetNodeId(0)] = reader.GetString(1);
+        }
+
+        return previews;
     }
 
     private static NodeInfo RequireDocument(WriteContext context, NodeId nodeId)

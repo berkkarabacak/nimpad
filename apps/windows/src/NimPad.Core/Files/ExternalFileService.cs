@@ -421,8 +421,31 @@ public sealed class ExternalFileService
         CancellationToken cancellationToken = default)
     {
         var file = await OpenAsync(path, progress, cancellationToken).ConfigureAwait(false);
-        var name = ImportName(Path.GetFileName(file.Path));
-        var text = ContentCanonicalizer.ToStorableText(ContentCanonicalizer.NormalizeLineEndings(file.Text));
+        return await ImportTextAsync(Path.GetFileName(file.Path), file.Text, parentFolderId, workspaceId, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Imports text that came from a file (for example an open file's edited, unsaved text) as a new managed note,
+    /// exactly like <see cref="ImportAsync"/> does with the file's content: queued as an <c>import</c>, named after
+    /// <paramref name="fileName"/>, with LF line endings, storable text and the detected format.
+    /// </summary>
+    /// <param name="fileName">The file's name (without directories), which becomes the note's name.</param>
+    /// <param name="text">The text, with any line endings.</param>
+    /// <param name="parentFolderId">The folder to import into, or <see langword="null"/> for the workspace root.</param>
+    /// <param name="workspaceId">The workspace when importing at the root; the default (oldest) workspace by default.</param>
+    /// <param name="cancellationToken">Cancels the write before it starts.</param>
+    /// <returns>The new note.</returns>
+    public async Task<NodeInfo> ImportTextAsync(
+        string fileName,
+        string text,
+        NodeId? parentFolderId = null,
+        WorkspaceId? workspaceId = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        ArgumentNullException.ThrowIfNull(text);
+        var name = ImportName(Path.GetFileName(fileName));
+        text = ContentCanonicalizer.ToStorableText(ContentCanonicalizer.NormalizeLineEndings(text));
         var format = DocumentFormats.Detect(name, text);
         return await _database.Writer.ExecuteAsync(
             context =>

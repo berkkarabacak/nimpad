@@ -527,8 +527,9 @@ public sealed class AutosaveSchedulerTests : IDisposable
         var last = default(AutosaveFailedEventArgs);
         scheduler.SaveFailed += (_, e) =>
         {
-            Interlocked.Increment(ref failures);
+            // Publish the event before the count: the test reads `last` once it sees the count.
             last = e;
+            Interlocked.Increment(ref failures);
         };
         var source = new FakeSource();
         scheduler.Track(note.Id, source, (await store.Documents.GetContentAsync(note.Id)).Checksum);
@@ -537,12 +538,16 @@ public sealed class AutosaveSchedulerTests : IDisposable
         await store.Nodes.DeleteForeverAsync([note.Id]);
 
         store.Clock.Advance(TimeSpan.FromMilliseconds(400));
-        await WaitUntilAsync(() => scheduler.GetState(note.Id) is { IsHalted: true, IsSaving: false });
+        // SaveFailed is raised after the halted state is recorded, so wait for the event as well as the state.
+        await WaitUntilAsync(() =>
+            Volatile.Read(ref failures) == 1 && scheduler.GetState(note.Id) is { IsHalted: true, IsSaving: false });
         for (var i = 0; i < 10; i++)
         {
             store.Clock.Advance(TimeSpan.FromSeconds(30));
         }
 
+        // A retry would be started by the timers fired above and fail asynchronously; give one time to surface.
+        await Task.Delay(TimeSpan.FromMilliseconds(200));
         Assert.Equal(1, Volatile.Read(ref failures));
         Assert.IsType<NodeNotFoundException>(last!.Error);
         Assert.False(last.WillRetry);

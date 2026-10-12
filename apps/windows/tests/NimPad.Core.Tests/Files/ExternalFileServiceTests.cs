@@ -508,6 +508,25 @@ public sealed class ExternalFileServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ImportTextCreatesTheSameNoteAsImportingTheFile()
+    {
+        var folder = await _store.Nodes.CreateFolderAsync(_store.Workspace.Id, null, "Inbox");
+
+        var note = await Files.ImportTextAsync(Path.Combine("C", "dir", "config.json"), "{\r\n  \"a\": \u0000\r\n}", folder.Id);
+
+        Assert.Equal("config.json", note.Name);
+        Assert.Equal(folder.Id, note.ParentId);
+        Assert.Equal(DocumentFormat.Json, note.Format);
+        Assert.Equal("{\n  \"a\": \uFFFD\n}", (await _store.Documents.GetContentAsync(note.Id)).Text);
+        var create = Assert.Single(await _store.Queue.GetForNodeAsync(note.Id));
+        Assert.Equal(LocalActorKind.Import, create.ActorKind);
+
+        var untyped = await Files.ImportTextAsync("notes", "#!/usr/bin/env python3\nprint(1)\n");
+        Assert.Equal(DocumentFormat.Python, untyped.Format);
+        Assert.Null(untyped.ParentId);
+    }
+
+    [Fact]
     public async Task ExportWritesTheCanonicalTextAsUtf8WithoutABom()
     {
         var note = await _store.Nodes.CreateDocumentAsync(_store.Workspace.Id, null, "Export me.md", initialText: "Grüße\r\nline two\n");

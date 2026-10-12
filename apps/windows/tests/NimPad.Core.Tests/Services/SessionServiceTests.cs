@@ -177,6 +177,7 @@ public sealed class SessionServiceTests : IAsyncLifetime
         {
             IsPinned = true,
             IsActive = true,
+            Order = 3,
             CaretOffset = 12,
             SelectionStart = 10,
             SelectionLength = 2,

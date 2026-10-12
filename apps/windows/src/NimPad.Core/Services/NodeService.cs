@@ -371,6 +371,30 @@ public sealed class NodeService
     public Task<NodeInfo?> GetNodeAsync(NodeId nodeId, CancellationToken cancellationToken = default) =>
         ReadAsync(connection => NodeRows.Get(connection, nodeId), cancellationToken);
 
+    /// <summary>
+    /// Several nodes in any state (live or trashed), in one query, for refreshing a view after a change notification.
+    /// IDs that no longer exist are left out; the order of the result is unspecified.
+    /// </summary>
+    public Task<IReadOnlyList<NodeInfo>> GetNodesAsync(IReadOnlyCollection<NodeId> nodeIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(nodeIds);
+        if (nodeIds.Count == 0)
+        {
+            return Task.FromResult<IReadOnlyList<NodeInfo>>([]);
+        }
+
+        var ids = ToJsonArray(nodeIds.Distinct());
+        return ReadAsync<IReadOnlyList<NodeInfo>>(
+            connection =>
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = $"SELECT {NodeRows.Columns} {NodeRows.From} WHERE n.id IN (SELECT value FROM json_each($ids));";
+                command.With("$ids", ids);
+                return NodeRows.ReadAll(command);
+            },
+            cancellationToken);
+    }
+
     /// <summary>The live children of a folder (or of the workspace root), in sibling order.</summary>
     public Task<IReadOnlyList<NodeInfo>> GetChildrenAsync(WorkspaceId workspaceId, NodeId? parentId, CancellationToken cancellationToken = default) =>
         ReadAsync<IReadOnlyList<NodeInfo>>(
