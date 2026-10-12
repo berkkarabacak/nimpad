@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    NimPad: YAML highlighting (keys, quoted and plain scalars, numbers, booleans/null, comments, anchors/aliases,
+    tags, directives, document markers, flow collections).
+
+    The colors are names only: HighlightingProvider recolors every named color to a design token through its
+    mapping table (HighlightingSources.cs), so no color value lives here.
+
+    AvalonEdit semantics to keep in mind when editing:
+    - A Span's Begin regex sees the whole line (lookbehind works). A Rule only sees the text between the
+      surrounding spans, so its lookbehind/lookahead and ^/$ stop at those boundaries.
+    - On a tie (same start index) the element listed first wins; a nested span start beats the parent's end.
+    - Rule bodies and <Begin>/<End> elements use IgnorePatternWhitespace: write spaces and # inside [...].
+    - Speed: a regex is tried at every position of a line of up to 20,000 characters. Every lookbehind therefore
+      comes after the token's first character (or a lookahead on it), whitespace runs are atomic (?>...), and no
+      lazy loop is followed by a lookahead that rescans whitespace; otherwise long blank runs cost seconds.
+    Known limits: block scalar (| and >) contents are not recognized as text; plain multi-line scalars and
+    explicit "? " keys are colored line by line.
+-->
+<SyntaxDefinition name="YAML" extensions=".yml;.yaml" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="Comment" />
+    <Color name="Key" />
+    <Color name="String" />
+    <Color name="Number" />
+    <Color name="Literal" />
+    <Color name="Anchor" />
+    <Color name="Tag" />
+    <Color name="Directive" />
+    <Color name="DocumentMarker" />
+    <Color name="Punctuation" />
+
+    <!-- Escape sequences inside "double-quoted" scalars. -->
+    <RuleSet name="DoubleQuoted">
+        <Span begin="\\" end="." />
+    </RuleSet>
+
+    <!-- '' is an escaped quote inside 'single-quoted' scalars. -->
+    <RuleSet name="SingleQuoted">
+        <Span begin="''" end="" />
+    </RuleSet>
+
+    <!-- Inside [ ... ] and { ... }: a value starts after [ { , or : (and at a continuation line's start). -->
+    <RuleSet name="Flow">
+        <Span color="Comment" begin="#(?&lt;=(?:^|[ \t])#)" />
+        <Span color="Key" ruleSet="DoubleQuoted" begin="&quot;(?&lt;=(?:^|[\[{,])(?>[ \t]*)&quot;)(?=(?>(?:[^&quot;\\]|\\.)*)&quot;[ \t]*:)" end="&quot;" />
+        <Span color="Key" ruleSet="SingleQuoted" begin="'(?&lt;=(?:^|[\[{,])(?>[ \t]*)')(?=(?>(?:[^']|'')*)'[ \t]*:)" end="'" />
+        <Span color="String" ruleSet="DoubleQuoted" multiline="true" begin="&quot;(?&lt;=(?:^|[\[{,:])(?>[ \t]*)&quot;)" end="&quot;" />
+        <Span color="String" ruleSet="SingleQuoted" multiline="true" begin="'(?&lt;=(?:^|[\[{,:])(?>[ \t]*)')" end="'" />
+        <Span ruleSet="Flow" multiline="true">
+            <Begin color="Punctuation">\[(?&lt;=(?:^|[\[{,:])(?>[ \t]*)\[)</Begin>
+            <End color="Punctuation">\]</End>
+        </Span>
+        <Span ruleSet="Flow" multiline="true">
+            <Begin color="Punctuation">\{(?&lt;=(?:^|[\[{,:])(?>[ \t]*)\{)</Begin>
+            <End color="Punctuation">\}</End>
+        </Span>
+
+        <Rule color="Key">
+            [^-?:,\[\]{}\#&amp;*!|&gt;'"%@`\s](?&lt;=(?:^|[\[{,])(?>[ \t]*).)
+            (?>(?:[^\s:,\[\]{}]|:(?=[^\s,\[\]{}]))*)
+            (?:(?>[ \t]+)(?>(?:[^\s:,\[\]{}]|:(?=[^\s,\[\]{}]))+))*
+            (?=[ \t]*:(?:[ \t]|$))
+        </Rule>
+        <Rule color="Literal">
+            (?=[tTfFyYnNoO~])(?&lt;=(?:^|[\[{,:])(?>[ \t]*))
+            (?:true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO|on|On|ON|off|Off|OFF|null|Null|NULL|~)
+            (?=[ \t]*(?:$|,))
+        </Rule>
+        <Rule color="Number">
+            (?=[-+0-9.])(?&lt;=(?:^|[\[{,:])(?>[ \t]*))
+            [-+]?(?:0x[0-9a-fA-F_]+|0o[0-7_]+|0b[01_]+|(?:[0-9][0-9_]*(?:\.[0-9_]*)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?|\.(?:inf|Inf|INF|nan|NaN|NAN))
+            (?=[ \t]*(?:$|,))
+        </Rule>
+        <Rule color="String">
+            (?:[^-?:,\[\]{}\#&amp;*!|&gt;'"%@`\s]|[-?:](?=[^\s,\[\]{}]))(?&lt;=(?:^|[\[{,:])(?>[ \t]*).)
+            (?>[^\s,\[\]{}]*)(?:(?>[ \t]+)(?>[^\s,\[\]{}]+))*
+        </Rule>
+        <Rule color="Punctuation">[,:]</Rule>
+        <Rule color="Anchor">(?&lt;![^ \t\[{,])[&amp;*][^\s,\[\]{}]+</Rule>
+        <Rule color="Tag">(?&lt;![^ \t\[{,])!(?:&lt;[^&gt;]*&gt;|[^\s,\[\]{}]*)</Rule>
+    </RuleSet>
+
+    <RuleSet>
+        <!-- # starts a comment at the line start or after whitespace (a#b is a plain scalar). -->
+        <Span color="Comment" begin="#(?&lt;=(?:^|[ \t])#)" />
+        <Span color="Directive" begin="^%" />
+
+        <!-- Quoted keys ("key": / 'key':) are listed before quoted values. -->
+        <Span color="Key" ruleSet="DoubleQuoted" begin="&quot;(?&lt;=^(?>[ \t]*)(?:[-?](?>[ \t]+))*&quot;)(?=(?>(?:[^&quot;\\]|\\.)*)&quot;[ \t]*:(?:[ \t]|$))" end="&quot;" />
+        <Span color="Key" ruleSet="SingleQuoted" begin="'(?&lt;=^(?>[ \t]*)(?:[-?](?>[ \t]+))*')(?=(?>(?:[^']|'')*)'[ \t]*:(?:[ \t]|$))" end="'" />
+
+        <!-- Quoted values and flow collections start only where a value can start: the ' in "title: it's" is text. -->
+        <Span color="String" ruleSet="DoubleQuoted" multiline="true" begin="&quot;(?&lt;=(?:^|:(?=[ \t])|(?:^|[ \t])[-?](?=[ \t]))(?>[ \t]*)(?:[&amp;!][^ \t]*(?>[ \t]+))*&quot;)" end="&quot;" />
+        <Span color="String" ruleSet="SingleQuoted" multiline="true" begin="'(?&lt;=(?:^|:(?=[ \t])|(?:^|[ \t])[-?](?=[ \t]))(?>[ \t]*)(?:[&amp;!][^ \t]*(?>[ \t]+))*')" end="'" />
+        <Span ruleSet="Flow" multiline="true">
+            <Begin color="Punctuation">\[(?&lt;=(?:^|:(?=[ \t])|(?:^|[ \t])[-?](?=[ \t]))(?>[ \t]*)(?:[&amp;!][^ \t]*(?>[ \t]+))*\[)</Begin>
+            <End color="Punctuation">\]</End>
+        </Span>
+        <Span ruleSet="Flow" multiline="true">
+            <Begin color="Punctuation">\{(?&lt;=(?:^|:(?=[ \t])|(?:^|[ \t])[-?](?=[ \t]))(?>[ \t]*)(?:[&amp;!][^ \t]*(?>[ \t]+))*\{)</Begin>
+            <End color="Punctuation">\}</End>
+        </Span>
+
+        <Rule color="DocumentMarker">^(?:---|\.\.\.)(?=[ \t]|$)</Rule>
+        <!-- Plain keys: at the line start (after indentation and "- " / "? "), before ": " or ":" at the end. -->
+        <Rule color="Key">
+            [^-?:,\[\]{}\#&amp;*!|&gt;'"%@`\s](?&lt;=^(?>[ \t]*)(?:[-?](?>[ \t]+))*.)
+            (?>(?:[^\s:]|:(?=\S))*)(?:(?>[ \t]+)(?>(?:[^\s:]|:(?=\S))+))*
+            (?=[ \t]*:(?:[ \t]|$))
+        </Rule>
+        <!-- Block scalar indicators: key: |, key: >-, - |2 -->
+        <Rule color="Punctuation">[|&gt;](?&lt;=(?::|(?:^|[ \t])-)(?>[ \t]+)(?:[&amp;!][^ \t]*(?>[ \t]+))*.)[-+0-9]*(?=[ \t]*$)</Rule>
+        <!-- Whole plain scalars after "key: " or "- " (optionally after an anchor or tag). -->
+        <Rule color="Literal">
+            (?=[tTfFyYnNoO~])(?&lt;=(?::|(?:^|[ \t])[-?])(?>[ \t]+)(?:[&amp;!][^ \t]*(?>[ \t]+))*)
+            (?:true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO|on|On|ON|off|Off|OFF|null|Null|NULL|~)
+            (?=[ \t]*$)
+        </Rule>
+        <Rule color="Number">
+            (?=[-+0-9.])(?&lt;=(?::|(?:^|[ \t])[-?])(?>[ \t]+)(?:[&amp;!][^ \t]*(?>[ \t]+))*)
+            [-+]?(?:0x[0-9a-fA-F_]+|0o[0-7_]+|0b[01_]+|(?:[0-9][0-9_]*(?:\.[0-9_]*)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?|\.(?:inf|Inf|INF|nan|NaN|NAN))
+            (?=[ \t]*$)
+        </Rule>
+        <Rule color="String">
+            (?:[^-?:,\[\]{}\#&amp;*!|&gt;'"%@`\s]|[-?:](?=\S))(?&lt;=(?::|(?:^|[ \t])[-?])(?>[ \t]+)(?:[&amp;!][^ \t]*(?>[ \t]+))*.)
+            (?>[^ \t\r\n]*)(?:(?>[ \t]+)(?>[^ \t\r\n]+))*
+        </Rule>
+        <Rule color="Punctuation">(?&lt;![^ \t])[-?](?=[ \t]|$)|:(?=[ \t]|$)</Rule>
+        <Rule color="Anchor">(?&lt;![^ \t])[&amp;*][^\s,\[\]{}]+</Rule>
+        <Rule color="Tag">(?&lt;![^ \t])!(?:&lt;[^&gt;]*&gt;|[^\s,\[\]{}]*)</Rule>
+    </RuleSet>
+</SyntaxDefinition>
