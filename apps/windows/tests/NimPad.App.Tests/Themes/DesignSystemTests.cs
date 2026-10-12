@@ -118,21 +118,31 @@ public class DesignSystemTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void GalleryMeasuresAndArrangesInBothThemes(bool dark)
+    public void GalleryLaysOutInBothThemes(bool dark)
     {
         Assert.SkipUnless(OperatingSystem.IsWindows(), Sta.WindowsOnly);
         Sta.Run(() =>
         {
-            var window = new DesignGalleryWindow(dark);
+            // A Window that has never been shown has no HWND and does not lay itself out, so show it off-screen,
+            // unactivated and out of the taskbar: this is the same layout path the real app takes.
+            var window = new DesignGalleryWindow(dark)
+            {
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                Left = -20000,
+                Top = -20000,
+                Width = 1240,
+                Height = 860,
+                ShowActivated = false,
+                ShowInTaskbar = false,
+            };
             try
             {
-                window.Measure(new Size(1240, 860));
-                window.Arrange(new Rect(0, 0, 1240, 860));
+                window.Show();
                 window.UpdateLayout();
 
                 Assert.Equal(dark, window.IsDark);
                 Assert.Equal(dark ? "Dark" : "Light", window.FindResource("ThemeName"));
-                Assert.True(window.DesiredSize.Width > 0 && window.DesiredSize.Height > 0);
+                Assert.True(window.ActualWidth > 0 && window.ActualHeight > 0, "the gallery window did not lay out");
 
                 // Every measured, templated control in the gallery got its template from the design system.
                 var elements = Descendants(window).ToList();
