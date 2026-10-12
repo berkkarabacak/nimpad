@@ -1,0 +1,92 @@
+<!--
+    NimPad spacing, radii, key metrics and elevation (docs/design/tokens.md). All values are DIPs.
+    Theme-independent: reference with {StaticResource ...} from views (or {DynamicResource ...} from other
+    design-system dictionaries, which never use StaticResource across files).
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    mc:Ignorable="po">
+
+    <!-- Spacing, 4 px base: Double ("Space<N>") and uniform Thickness ("Thickness<N>"). -->
+    <sys:Double x:Key="Space4">4</sys:Double>     <!-- icon to label, tight pairs -->
+    <sys:Double x:Key="Space8">8</sys:Double>     <!-- inside controls, tab to close button -->
+    <sys:Double x:Key="Space12">12</sys:Double>   <!-- sidebar and bar padding -->
+    <sys:Double x:Key="Space16">16</sys:Double>   <!-- card padding, gaps between groups -->
+    <sys:Double x:Key="Space20">20</sys:Double>   <!-- editor top padding -->
+    <sys:Double x:Key="Space24">24</sys:Double>   <!-- page and sheet padding -->
+    <sys:Double x:Key="Space32">32</sys:Double>   <!-- editor side padding -->
+    <sys:Double x:Key="Space40">40</sys:Double>   <!-- title bar height, large gaps -->
+    <sys:Double x:Key="Space48">48</sys:Double>   <!-- display line height -->
+
+    <Thickness x:Key="Thickness4">4</Thickness>
+    <Thickness x:Key="Thickness8">8</Thickness>
+    <Thickness x:Key="Thickness12">12</Thickness>
+    <Thickness x:Key="Thickness16">16</Thickness>
+    <Thickness x:Key="Thickness20">20</Thickness>
+    <Thickness x:Key="Thickness24">24</Thickness>
+    <Thickness x:Key="Thickness32">32</Thickness>
+    <Thickness x:Key="Thickness40">40</Thickness>
+    <Thickness x:Key="Thickness48">48</Thickness>
+
+    <!-- Named paddings -->
+    <Thickness x:Key="BarPadding">12,0</Thickness>                  <!-- status bar, sidebar header -->
+    <Thickness x:Key="CardPadding">16</Thickness>
+    <Thickness x:Key="DialogPadding">24</Thickness>
+    <Thickness x:Key="PagePadding">24</Thickness>
+    <Thickness x:Key="EditorPadding">32,20,32,20</Thickness>        <!-- wide layout -->
+    <Thickness x:Key="EditorPaddingMedium">24,20,24,20</Thickness>  <!-- medium/narrow layout -->
+
+    <!-- Corner radius -->
+    <CornerRadius x:Key="Radius4">4</CornerRadius>          <!-- tab close button, key caps, menu items -->
+    <CornerRadius x:Key="Radius6">6</CornerRadius>          <!-- buttons, inputs, rows -->
+    <CornerRadius x:Key="Radius8">8</CornerRadius>          <!-- menus, dialogs, cards, window -->
+    <CornerRadius x:Key="RadiusFull">999</CornerRadius>     <!-- avatar, switch, pills -->
+    <CornerRadius x:Key="TabTopRadius">8,8,0,0</CornerRadius> <!-- tab top corners -->
+
+    <!-- Key metrics -->
+    <sys:Double x:Key="TitleBarHeight">40</sys:Double>
+    <sys:Double x:Key="TabHeight">34</sys:Double>
+    <sys:Double x:Key="TabMinWidth">96</sys:Double>
+    <sys:Double x:Key="TabMaxWidth">172</sys:Double>
+    <sys:Double x:Key="PinnedTabWidth">104</sys:Double>
+    <sys:Double x:Key="NewTabButtonSize">30</sys:Double>
+    <sys:Double x:Key="AvatarSize">28</sys:Double>
+    <sys:Double x:Key="WindowControlWidth">46</sys:Double>
+    <sys:Double x:Key="WindowControlHeight">40</sys:Double>
+    <sys:Double x:Key="StatusBarHeight">24</sys:Double>
+    <sys:Double x:Key="SidebarWidth">288</sys:Double>
+    <sys:Double x:Key="SettingsNavWidth">216</sys:Double>
+    <sys:Double x:Key="ControlHeight">32</sys:Double>
+    <sys:Double x:Key="SmallControlHeight">26</sys:Double>
+    <sys:Double x:Key="LargeControlHeight">44</sys:Double>
+    <sys:Double x:Key="IconButtonSize">28</sys:Double>
+    <sys:Double x:Key="MenuRowHeight">32</sys:Double>
+    <sys:Double x:Key="BannerMinHeight">36</sys:Double>
+    <sys:Double x:Key="IconSize">16</sys:Double>
+    <sys:Double x:Key="AppMarkSize">18</sys:Double>
+    <sys:Double x:Key="FocusRingThickness">2</sys:Double>
+    <sys:Double x:Key="ScrollBarIdleWidth">4</sys:Double>
+    <sys:Double x:Key="ScrollBarHoverWidth">12</sys:Double>
+    <sys:Double x:Key="DefaultWindowWidth">1120</sys:Double>
+    <sys:Double x:Key="DefaultWindowHeight">720</sys:Double>
+    <sys:Double x:Key="MinWindowWidth">400</sys:Double>
+    <sys:Double x:Key="MinWindowHeight">300</sys:Double>
+    <sys:Double x:Key="WideLayoutMinWidth">720</sys:Double>   <!-- Wide >= 720 -->
+    <sys:Double x:Key="MediumLayoutMinWidth">520</sys:Double> <!-- Medium 520-719, Narrow 400-519 -->
+    <sys:Double x:Key="DisabledOpacity">0.4</sys:Double>
+    <sys:Double x:Key="MenuDisabledOpacity">0.45</sys:Double>
+
+    <!--
+        Elevation. Black shadows with a moderate blur (cheap on the GPU, readable in both themes; the dark theme
+        relies on the 1 px Line border of raised surfaces as much as on the shadow). The control templates put
+        these on a static sibling layer behind the content so hover changes inside a menu never re-render the effect.
+    -->
+    <DropShadowEffect x:Key="FlyoutShadow" po:Freeze="True" Color="#000000" Direction="270" ShadowDepth="4"
+                      BlurRadius="16" Opacity="0.16" RenderingBias="Performance" />
+    <DropShadowEffect x:Key="DialogShadow" po:Freeze="True" Color="#000000" Direction="270" ShadowDepth="8"
+                      BlurRadius="32" Opacity="0.26" RenderingBias="Performance" />
+
+</ResourceDictionary>

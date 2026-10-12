@@ -1,0 +1,101 @@
+<!--
+    NimPad design tokens: LIGHT theme.
+    Values from docs/design/tokens.md (the source of truth). Change both token files together;
+    NimPad.App.Tests/Themes/TokenTests.cs checks every value against a copy of its tables.
+    Every token has a Color ("<Name>Color") and a frozen SolidColorBrush ("<Name>Brush").
+    Translucent tokens are ARGB: alpha = round(opacity * 255), e.g. #1D1D1B at 6% = #0F1D1D1B.
+    ThemeService keeps this dictionary FIRST in Application.Resources.MergedDictionaries and swaps it
+    with the other theme, so consumers must always use {DynamicResource ...} for these keys.
+-->
+<ResourceDictionary x:Class="NimPad.App.Themes.TokensLight"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    mc:Ignorable="po">
+
+    <!-- Marker: which token set this is ("Light" or "Dark"). -->
+    <sys:String x:Key="ThemeName">Light</sys:String>
+
+    <!-- Colors -->
+    <Color x:Key="ChromeColor">#FFEFEFEC</Color> <!-- #EFEFEC -->
+    <Color x:Key="SurfaceColor">#FFFBFBFA</Color> <!-- #FBFBFA -->
+    <Color x:Key="RaisedColor">#FFFFFFFF</Color> <!-- #FFFFFF -->
+    <Color x:Key="TextColor">#FF1D1D1B</Color> <!-- #1D1D1B -->
+    <Color x:Key="Text2Color">#FF5B5B57</Color> <!-- #5B5B57 -->
+    <Color x:Key="Text3Color">#FF686863</Color> <!-- #686863 -->
+    <Color x:Key="HoverColor">#0F1D1D1B</Color> <!-- #1D1D1B · 6% -->
+    <Color x:Key="PressColor">#1A1D1D1B</Color> <!-- #1D1D1B · 10% -->
+    <Color x:Key="SepColor">#291D1D1B</Color> <!-- #1D1D1B · 16% -->
+    <Color x:Key="LineColor">#1A1D1D1B</Color> <!-- #1D1D1B · 10% -->
+    <Color x:Key="Line2Color">#421D1D1B</Color> <!-- #1D1D1B · 26% -->
+    <Color x:Key="AccentColor">#FF3055D8</Color> <!-- #3055D8 -->
+    <Color x:Key="AccentHoverColor">#FF2647BD</Color> <!-- #2647BD -->
+    <Color x:Key="AccentPressedColor">#FF1F3B9E</Color> <!-- #1F3B9E -->
+    <Color x:Key="AccentSoftColor">#FFE6ECFC</Color> <!-- #E6ECFC -->
+    <Color x:Key="OnAccentColor">#FFFFFFFF</Color> <!-- #FFFFFF -->
+    <Color x:Key="SelectionColor">#2E3055D8</Color> <!-- #3055D8 · 18% -->
+    <Color x:Key="CurrentLineColor">#0A1D1D1B</Color> <!-- #1D1D1B · 4% -->
+    <Color x:Key="MatchColor">#66F0B928</Color> <!-- #F0B928 · 40% -->
+    <Color x:Key="MatchCurrentColor">#B8F09614</Color> <!-- #F09614 · 72% -->
+    <Color x:Key="AvatarBgColor">#FFDCE3FB</Color> <!-- #DCE3FB -->
+    <Color x:Key="AvatarFgColor">#FF273C99</Color> <!-- #273C99 -->
+    <Color x:Key="OkColor">#FF26704A</Color> <!-- #26704A -->
+    <Color x:Key="OkSoftColor">#FFE3F2EA</Color> <!-- #E3F2EA -->
+    <Color x:Key="WarnColor">#FF8F5200</Color> <!-- #8F5200 -->
+    <Color x:Key="WarnSoftColor">#FFFBEFD5</Color> <!-- #FBEFD5 -->
+    <Color x:Key="ErrColor">#FFB3261E</Color> <!-- #B3261E -->
+    <Color x:Key="ErrSoftColor">#FFFBE5E3</Color> <!-- #FBE5E3 -->
+    <Color x:Key="DiffAddColor">#29289655</Color> <!-- #289655 · 16% -->
+    <Color x:Key="DiffDelColor">#24C8372D</Color> <!-- #C8372D · 14% -->
+    <Color x:Key="SyntaxKeyColor">#FF2B5FAE</Color> <!-- #2B5FAE -->
+    <Color x:Key="SyntaxStringColor">#FF2A7A4B</Color> <!-- #2A7A4B -->
+    <Color x:Key="SyntaxNumberColor">#FFA8530F</Color> <!-- #A8530F -->
+    <Color x:Key="SyntaxLiteralColor">#FF8A3FA8</Color> <!-- #8A3FA8 -->
+    <Color x:Key="SyntaxPunctuationColor">#FF75756F</Color> <!-- #75756F -->
+    <Color x:Key="SyntaxCommentColor">#FF75756F</Color> <!-- #75756F -->
+    <Color x:Key="CloseHoverColor">#FFC42B1C</Color> <!-- #C42B1C -->
+    <Color x:Key="ScrimColor">#66000000</Color> <!-- #000000 · 40% -->
+
+    <!-- Brushes (frozen) -->
+    <SolidColorBrush x:Key="ChromeBrush" Color="{StaticResource ChromeColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="RaisedBrush" Color="{StaticResource RaisedColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="Text2Brush" Color="{StaticResource Text2Color}" po:Freeze="True" />
+    <SolidColorBrush x:Key="Text3Brush" Color="{StaticResource Text3Color}" po:Freeze="True" />
+    <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="PressBrush" Color="{StaticResource PressColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="SepBrush" Color="{StaticResource SepColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="LineBrush" Color="{StaticResource LineColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="Line2Brush" Color="{StaticResource Line2Color}" po:Freeze="True" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="AccentPressedBrush" Color="{StaticResource AccentPressedColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="{StaticResource AccentSoftColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccentColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="SelectionBrush" Color="{StaticResource SelectionColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="CurrentLineBrush" Color="{StaticResource CurrentLineColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="MatchBrush" Color="{StaticResource MatchColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="MatchCurrentBrush" Color="{StaticResource MatchCurrentColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="AvatarBgBrush" Color="{StaticResource AvatarBgColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="AvatarFgBrush" Color="{StaticResource AvatarFgColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="OkBrush" Color="{StaticResource OkColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="OkSoftBrush" Color="{StaticResource OkSoftColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="WarnBrush" Color="{StaticResource WarnColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="WarnSoftBrush" Color="{StaticResource WarnSoftColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="ErrBrush" Color="{StaticResource ErrColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="ErrSoftBrush" Color="{StaticResource ErrSoftColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="DiffAddBrush" Color="{StaticResource DiffAddColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="DiffDelBrush" Color="{StaticResource DiffDelColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="SyntaxKeyBrush" Color="{StaticResource SyntaxKeyColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="SyntaxStringBrush" Color="{StaticResource SyntaxStringColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="SyntaxNumberBrush" Color="{StaticResource SyntaxNumberColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="SyntaxLiteralBrush" Color="{StaticResource SyntaxLiteralColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="SyntaxPunctuationBrush" Color="{StaticResource SyntaxPunctuationColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="SyntaxCommentBrush" Color="{StaticResource SyntaxCommentColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="CloseHoverBrush" Color="{StaticResource CloseHoverColor}" po:Freeze="True" />
+    <SolidColorBrush x:Key="ScrimBrush" Color="{StaticResource ScrimColor}" po:Freeze="True" />
+
+</ResourceDictionary>
