@@ -1,0 +1,121 @@
+<!--
+    STUB notes sidebar (the explorer area replaces it): search field, new note / new folder, the rows (pinned, recent,
+    the workspace tree, search results, Trash), an empty state and the Trash entry. DataContext = ExplorerViewModel.
+    Only DynamicResource for design-system keys.
+-->
+<UserControl x:Class="NimPad.App.Views.Explorer.ExplorerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:NimPad.App.Controls"
+             xmlns:shell="clr-namespace:NimPad.App.Shell"
+             xmlns:local="clr-namespace:NimPad.App.Views.Explorer"
+             xmlns:ex="clr-namespace:NimPad.Presentation.Explorer;assembly=NimPad.Presentation"
+             Background="{DynamicResource ChromeBrush}"
+             AutomationProperties.Name="Notes">
+    <UserControl.Resources>
+        <DataTemplate DataType="{x:Type ex:ExplorerHeaderRowViewModel}">
+            <TextBlock Style="{DynamicResource MicroText}" Foreground="{DynamicResource Text3Brush}" Margin="0,10,0,2"
+                       Text="{Binding Title}" />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type ex:ExplorerNodeRowViewModel}">
+            <DockPanel Margin="{Binding Depth, Converter={x:Static local:ExplorerConverters.DepthToIndent}}" MinHeight="30">
+                <c:Icon x:Name="Glyph" DockPanel.Dock="Left" Data="{DynamicResource Document}" Margin="0,0,8,0"
+                        VerticalAlignment="Center" Foreground="{DynamicResource Text2Brush}" />
+                <TextBlock DockPanel.Dock="Right" Style="{DynamicResource TimestampText}" Foreground="{DynamicResource Text3Brush}"
+                           VerticalAlignment="Center" Margin="8,0,0,0" Text="{Binding TimestampText}"
+                           Visibility="{Binding ShowsDetails, Converter={x:Static shell:ShellConverters.TrueToVisible}}" />
+                <TextBlock Style="{DynamicResource ControlText}" Foreground="{DynamicResource TextBrush}" FontWeight="Normal"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding Name}" />
+            </DockPanel>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsFolder}" Value="True">
+                    <Setter TargetName="Glyph" Property="Data" Value="{DynamicResource Folder}" />
+                </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsFolder}" Value="True" />
+                        <Condition Binding="{Binding IsExpanded}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter TargetName="Glyph" Property="Data" Value="{DynamicResource FolderOpen}" />
+                </MultiDataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type ex:ExplorerSearchResultRowViewModel}">
+            <StackPanel Margin="0,6">
+                <TextBlock Style="{DynamicResource ControlNameText}" Foreground="{DynamicResource TextBrush}"
+                           TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
+                <TextBlock Style="{DynamicResource SecondaryText}" Foreground="{DynamicResource Text2Brush}"
+                           TextTrimming="CharacterEllipsis" Text="{Binding Snippet}" />
+                <TextBlock Style="{DynamicResource TimestampText}" Foreground="{DynamicResource Text3Brush}"
+                           TextTrimming="CharacterEllipsis" Text="{Binding PathText}" />
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type ex:ExplorerTrashRowViewModel}">
+            <StackPanel Margin="0,6">
+                <TextBlock Style="{DynamicResource ControlNameText}" Foreground="{DynamicResource TextBrush}"
+                           TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
+                <TextBlock Style="{DynamicResource SecondaryText}" Foreground="{DynamicResource Text2Brush}"
+                           TextTrimming="CharacterEllipsis" Text="{Binding StatusText}" />
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <c:SearchBox x:Name="Search" Margin="12,12,12,4" Placeholder="Search all notes"
+                     Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     ClearCommand="{Binding ClearSearchCommand}" KeyDown="OnSearchKeyDown"
+                     AutomationProperties.Name="Search all notes" AutomationProperties.AutomationId="ExplorerSearch" />
+
+        <DockPanel Grid.Row="1" Margin="12,4,8,4" LastChildFill="False">
+            <TextBlock DockPanel.Dock="Left" Style="{DynamicResource CaptionText}" Foreground="{DynamicResource Text3Brush}"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding SearchSummaryText}" />
+            <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" c:Ui.Icon="{DynamicResource FolderAdd}"
+                    Command="{Binding NewFolderCommand}" ToolTip="New folder" AutomationProperties.Name="New folder"
+                    AutomationProperties.AutomationId="ExplorerNewFolder" />
+            <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" c:Ui.Icon="{DynamicResource Plus}"
+                    Command="{Binding NewNoteCommand}" ToolTip="New note" AutomationProperties.Name="New note"
+                    AutomationProperties.AutomationId="ExplorerNewNote" />
+        </DockPanel>
+
+        <ListBox x:Name="List" Grid.Row="2" Padding="8,0,8,8" ItemsSource="{Binding Rows}"
+                 SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
+                 AutomationProperties.Name="Notes" AutomationProperties.AutomationId="ExplorerList"
+                 MouseDoubleClick="OnListDoubleClick" PreviewKeyDown="OnListPreviewKeyDown" />
+
+        <StackPanel x:Name="Empty" Grid.Row="2" Margin="20,24" VerticalAlignment="Top"
+                    Visibility="{Binding EmptyState, Converter={x:Static shell:ShellConverters.NotEmptyToVisible}}">
+            <TextBlock Style="{DynamicResource BodyLabelText}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"
+                       Text="{Binding EmptyState.Title}" />
+            <TextBlock Style="{DynamicResource SecondaryText}" Foreground="{DynamicResource Text2Brush}" TextWrapping="Wrap"
+                       Margin="0,4,0,0" Text="{Binding EmptyState.Message}" />
+            <Button Style="{DynamicResource LinkButton}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                    Content="{Binding EmptyState.ActionText}" Command="{Binding EmptyState.ActionCommand}"
+                    Visibility="{Binding EmptyState.ActionText, Converter={x:Static shell:ShellConverters.NotEmptyToVisible}, FallbackValue=Collapsed}" />
+        </StackPanel>
+
+        <Border Grid.Row="3" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="8,6">
+            <Grid>
+                <Button x:Name="TrashButton" Style="{DynamicResource QuietButton}" HorizontalAlignment="Left"
+                        c:Ui.Icon="{DynamicResource Trash}" Command="{Binding ShowTrashCommand}"
+                        AutomationProperties.AutomationId="ExplorerTrash" AutomationProperties.Name="Trash"
+                        Visibility="{Binding IsTrashMode, Converter={x:Static shell:ShellConverters.FalseToVisible}}">
+                    <TextBlock>
+                        <Run Text="Trash" />
+                        <Run Text="{Binding TrashCount, Mode=OneWay}" Foreground="{DynamicResource Text3Brush}" />
+                    </TextBlock>
+                </Button>
+                <Button x:Name="BackButton" Style="{DynamicResource QuietButton}" HorizontalAlignment="Left"
+                        c:Ui.Icon="{DynamicResource ChevronLeft}" Content="Back to notes" Command="{Binding ShowTreeCommand}"
+                        AutomationProperties.AutomationId="TrashBack"
+                        Visibility="{Binding IsTrashMode, Converter={x:Static shell:ShellConverters.TrueToVisible}}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

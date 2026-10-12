@@ -1,0 +1,64 @@
+<!--
+    Toasts (deck p-10, p-25): bottom-left of the editor, Raised card with the flyout shadow, message + one action with
+    its shortcut + close X. The view model dismisses them after 6 s; the countdown pauses while the pointer is over a
+    toast or it has keyboard focus. Toasts never take focus; screen readers hear them politely.
+    DataContext = ShellViewModel. Only DynamicResource for design-system keys.
+-->
+<UserControl x:Class="NimPad.App.Shell.ToastHostView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:NimPad.App.Controls"
+             xmlns:shell="clr-namespace:NimPad.App.Shell"
+             Focusable="False">
+    <shell:RegionBorder x:Name="Host" AutomationProperties.AutomationId="ToastHost"
+                        AutomationProperties.Name="Notifications">
+        <ItemsControl x:Name="List" ItemsSource="{Binding Toasts.Toasts}" Focusable="False">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <shell:RegionBorder x:Name="ToastRoot" ControlType="Group" Margin="0,8,0,0"
+                                        AutomationProperties.AutomationId="Toast"
+                                        AutomationProperties.Name="{Binding Message}"
+                                        AutomationProperties.ItemStatus="{Binding Kind}"
+                                        AutomationProperties.LiveSetting="Polite"
+                                        Loaded="OnToastLoaded" MouseEnter="OnToastPointerEnter" MouseLeave="OnToastPointerLeave"
+                                        IsKeyboardFocusWithinChanged="OnToastFocusWithinChanged">
+                        <ContentControl Style="{DynamicResource ToastCard}" MinWidth="280" MaxWidth="480">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Style="{DynamicResource SmallIconButton}" VerticalAlignment="Center"
+                                        Margin="12,0,-6,0" c:Ui.Icon="{DynamicResource Close}" Command="{Binding DismissCommand}"
+                                        ToolTip="Dismiss" AutomationProperties.Name="Dismiss"
+                                        AutomationProperties.AutomationId="ToastDismiss" />
+                                <TextBlock x:Name="Shortcut" DockPanel.Dock="Right" Style="{DynamicResource CaptionText}"
+                                           Foreground="{DynamicResource Text3Brush}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                           Text="{Binding ActionShortcutText}"
+                                           Visibility="{Binding ActionShortcutText, Converter={x:Static shell:ShellConverters.NotEmptyToVisible}}" />
+                                <Button x:Name="Action" DockPanel.Dock="Right" Style="{DynamicResource LinkButton}"
+                                        VerticalAlignment="Center" Margin="16,0,0,0"
+                                        Content="{Binding ActionText}" Command="{Binding ActionCommand}"
+                                        AutomationProperties.AutomationId="ToastAction"
+                                        Visibility="{Binding HasAction, Converter={x:Static shell:ShellConverters.TrueToVisible}}" />
+                                <c:Icon x:Name="KindIcon" DockPanel.Dock="Left" Margin="0,1,10,0" VerticalAlignment="Center"
+                                        Visibility="Collapsed" />
+                                <TextBlock Style="{DynamicResource ControlText}" FontWeight="Normal"
+                                           Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"
+                                           TextWrapping="Wrap" Text="{Binding Message}" />
+                            </DockPanel>
+                        </ContentControl>
+                    </shell:RegionBorder>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Kind}" Value="Success">
+                            <Setter TargetName="KindIcon" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="KindIcon" Property="Data" Value="{DynamicResource CheckCircle}" />
+                            <Setter TargetName="KindIcon" Property="Foreground" Value="{DynamicResource OkBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Kind}" Value="Error">
+                            <Setter TargetName="KindIcon" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="KindIcon" Property="Data" Value="{DynamicResource ErrorCircle}" />
+                            <Setter TargetName="KindIcon" Property="Foreground" Value="{DynamicResource ErrBrush}" />
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </shell:RegionBorder>
+</UserControl>

@@ -1,0 +1,62 @@
+<!--
+    STUB editor view (the editor area replaces it): one AvalonEdit TextEditor for every tab (EditorHost swaps the
+    per-tab documents), the empty-note hint, the loading placeholder / progress / error of the active tab, and
+    Ctrl+wheel zoom. DataContext = ShellViewModel. Only DynamicResource for design-system keys.
+-->
+<UserControl x:Class="NimPad.App.Views.Editor.EditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ae="http://icsharpcode.net/sharpdevelop/avalonedit"
+             xmlns:c="clr-namespace:NimPad.App.Controls"
+             xmlns:shell="clr-namespace:NimPad.App.Shell"
+             xmlns:editor="clr-namespace:NimPad.Presentation.Editor;assembly=NimPad.Presentation"
+             Background="{DynamicResource SurfaceBrush}"
+             Focusable="False">
+    <Grid x:Name="Root">
+        <ae:TextEditor x:Name="Editor"
+                       AutomationProperties.AutomationId="Editor" AutomationProperties.Name="Note text"
+                       Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextBrush}"
+                       LineNumbersForeground="{DynamicResource Text3Brush}"
+                       BorderThickness="0" ShowLineNumbers="{Binding Editor.ShowLineNumbers}"
+                       WordWrap="{Binding Editor.WordWrap}" FontSize="{Binding Editor.FontSize}"
+                       HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+
+        <!-- "Start typing. It saves on its own." A hint, not text: it is never saved. -->
+        <TextBlock x:Name="EmptyHint" IsHitTestVisible="False" HorizontalAlignment="Left" VerticalAlignment="Top"
+                   Foreground="{DynamicResource Text3Brush}" Text="{x:Static editor:EditorViewModel.EmptyHint}"
+                   FontFamily="{Binding FontFamily, ElementName=Editor}" FontSize="{Binding FontSize, ElementName=Editor}"
+                   Visibility="{Binding Editor.ShowEmptyHint, Converter={x:Static shell:ShellConverters.TrueToVisible}}" />
+
+        <!-- 300-600 ms: skeleton lines at their final place (deck p-29). -->
+        <StackPanel x:Name="LoadingPlaceholder" IsHitTestVisible="False" HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Visibility="{Binding Editor.ActiveTab.IsLoadingPlaceholderVisible, Converter={x:Static shell:ShellConverters.TrueToVisible}, FallbackValue=Collapsed}">
+            <c:SkeletonLine Width="220" Margin="0,4,0,12" />
+            <c:SkeletonLine Width="300" Margin="0,0,0,12" />
+            <c:SkeletonLine Width="170" Margin="0,0,0,12" />
+            <c:SkeletonLine Width="250" />
+        </StackPanel>
+
+        <!-- Large files (over 5 MB): what is opening, its size, progress and Cancel. -->
+        <StackPanel x:Name="LoadProgress" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280"
+                    Visibility="{Binding Editor.ActiveTab.IsLoadProgressVisible, Converter={x:Static shell:ShellConverters.TrueToVisible}, FallbackValue=Collapsed}">
+            <TextBlock Style="{DynamicResource BodyLabelText}" Foreground="{DynamicResource TextBrush}"
+                       HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding Editor.ActiveTab.LoadingText}" />
+            <TextBlock Style="{DynamicResource CaptionText}" Foreground="{DynamicResource Text2Brush}"
+                       HorizontalAlignment="Center" Margin="0,4,0,12" Text="{Binding Editor.ActiveTab.LoadingSizeText}" />
+            <ProgressBar Minimum="0" Maximum="1" Value="{Binding Editor.ActiveTab.LoadProgress, Mode=OneWay}"
+                         AutomationProperties.Name="Opening progress" />
+            <Button Style="{DynamicResource LinkButton}" Content="Cancel" HorizontalAlignment="Center" Margin="0,12,0,0"
+                    Command="{Binding Editor.ActiveTab.CancelLoadCommand}" AutomationProperties.AutomationId="LoadCancel" />
+        </StackPanel>
+
+        <!-- The text could not be read: say why, offer Retry. -->
+        <StackPanel x:Name="LoadFailed" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420" Margin="24"
+                    Visibility="{Binding Editor.ActiveTab.LoadError, Converter={x:Static shell:ShellConverters.NotEmptyToVisible}, FallbackValue=Collapsed}">
+            <c:Icon Data="{DynamicResource ErrorCircle}" Size="20" Foreground="{DynamicResource ErrBrush}" HorizontalAlignment="Center" />
+            <TextBlock Style="{DynamicResource BodyText}" Foreground="{DynamicResource TextBrush}" Margin="0,8,0,0"
+                       TextAlignment="Center" TextWrapping="Wrap" Text="{Binding Editor.ActiveTab.LoadError}" />
+            <Button Style="{DynamicResource SecondaryButton}" Content="Retry" HorizontalAlignment="Center" Margin="0,16,0,0"
+                    Command="{Binding Editor.ActiveTab.RetryLoadCommand}" AutomationProperties.AutomationId="LoadRetry" />
+        </StackPanel>
+    </Grid>
+</UserControl>

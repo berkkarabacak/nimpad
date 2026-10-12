@@ -1,0 +1,26 @@
+<!--
+    "All tabs closed" (deck p-29): a quiet badge, "No notes open", New note (primary) and Reopen closed tab (link).
+    Never blocks the window. DataContext = ShellViewModel. Only DynamicResource for design-system keys.
+-->
+<UserControl x:Class="NimPad.App.Shell.EmptyStateView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:NimPad.App.Controls"
+             Background="{DynamicResource SurfaceBrush}"
+             KeyboardNavigation.TabNavigation="Cycle">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24">
+        <ContentControl Style="{DynamicResource IconBadge}" c:Ui.Icon="{DynamicResource DocumentAdd}"
+                        HorizontalAlignment="Center" />
+        <TextBlock Style="{DynamicResource BodyLabelText}" Foreground="{DynamicResource TextBrush}"
+                   HorizontalAlignment="Center" Margin="0,12,0,0" Text="{Binding EmptyStateTitle}" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+            <Button x:Name="NewNoteButton" Style="{DynamicResource PrimaryButton}" Content="New note"
+                    Command="{Binding NewNoteCommand}" ToolTip="New note (Ctrl+N)"
+                    AutomationProperties.AutomationId="EmptyStateNewNote" />
+            <Button x:Name="ReopenButton" Style="{DynamicResource LinkButton}" Content="Reopen closed tab" Margin="20,0,0,0"
+                    VerticalAlignment="Center" Command="{Binding ReopenClosedTabCommand}"
+                    IsEnabled="{Binding Tabs.CanReopenClosedTab}" ToolTip="Reopen closed tab (Ctrl+Shift+T)"
+                    AutomationProperties.AutomationId="EmptyStateReopen" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

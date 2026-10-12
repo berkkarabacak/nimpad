@@ -1,8 +1,77 @@
+<!--
+    The main window (deck p-04/p-05, p-24, p-28): WindowChrome custom title bar (40) / banners / content (sidebar +
+    splitter + editor, or the sidebar overlaid in the medium and narrow layouts) / status bar (24), and the modal layer
+    for dialogs over a scrim. DataContext = ShellViewModel (set in code).
+    Only DynamicResource for design-system keys: the window can be built before the resources are merged (tests).
+-->
 <Window x:Class="NimPad.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:ae="http://icsharpcode.net/sharpdevelop/avalonedit"
+        xmlns:c="clr-namespace:NimPad.App.Controls"
+        xmlns:shell="clr-namespace:NimPad.App.Shell"
+        xmlns:editor="clr-namespace:NimPad.App.Views.Editor"
+        xmlns:explorer="clr-namespace:NimPad.App.Views.Explorer"
         Title="NimPad" Width="1120" Height="720" MinWidth="400" MinHeight="300"
-        AutomationProperties.AutomationId="MainWindow">
-    <ae:TextEditor x:Name="Editor" FontFamily="Cascadia Mono, Consolas" FontSize="14" />
+        Style="{DynamicResource AppWindow}"
+        AllowDrop="True"
+        AutomationProperties.AutomationId="MainWindow"
+        c:Ui.IsWindowActive="{Binding IsActive, RelativeSource={RelativeSource Self}}">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="40" CornerRadius="0" GlassFrameThickness="0,0,0,1" UseAeroCaptionButtons="False"
+                      NonClientFrameEdges="None"
+                      ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}" />
+    </WindowChrome.WindowChrome>
+
+    <Grid x:Name="WindowRoot">
+        <Grid x:Name="AppRoot">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="24" />
+            </Grid.RowDefinitions>
+
+            <shell:TitleBarView x:Name="TitleBar" Grid.Row="0" />
+
+            <shell:BannerHostView x:Name="BannerHost" Grid.Row="1" />
+
+            <Grid x:Name="ContentArea" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="SidebarColumn" Width="0" />
+                    <ColumnDefinition x:Name="SplitterColumn" Width="Auto" />
+                    <ColumnDefinition Width="*" MinWidth="120" />
+                </Grid.ColumnDefinitions>
+
+                <Grid x:Name="EditorArea" Grid.Column="2">
+                    <editor:EditorView x:Name="EditorView" />
+                    <shell:EmptyStateView x:Name="EmptyState"
+                                          Visibility="{Binding IsEmptyStateVisible, Converter={x:Static shell:ShellConverters.TrueToVisible}}" />
+                    <shell:ToastHostView x:Name="ToastHost" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                         Margin="16,0,16,16" />
+                </Grid>
+
+                <!-- Medium / narrow layouts: a click outside the overlaid sidebar closes it. -->
+                <Border x:Name="OverlayDismissLayer" Grid.Column="0" Grid.ColumnSpan="3" Panel.ZIndex="1"
+                        Background="{DynamicResource ScrimBrush}" Opacity="0.5" Visibility="Collapsed"
+                        MouseLeftButtonDown="OnOverlayDismissMouseDown" />
+                <Border x:Name="SidebarShadow" Grid.Column="0" Grid.ColumnSpan="3" Panel.ZIndex="2" HorizontalAlignment="Left"
+                        Background="{DynamicResource ChromeBrush}" Effect="{DynamicResource FlyoutShadow}"
+                        Visibility="Collapsed" IsHitTestVisible="False" />
+                <Border x:Name="SidebarHost" Grid.Column="0" Panel.ZIndex="3" Background="{DynamicResource ChromeBrush}"
+                        KeyboardNavigation.TabNavigation="Cycle">
+                    <explorer:ExplorerView x:Name="Explorer" DataContext="{Binding Explorer}" />
+                </Border>
+                <GridSplitter x:Name="SidebarSplitter" Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
+                              ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent"
+                              Focusable="False" IsTabStop="False" DragCompleted="OnSplitterDragCompleted"
+                              AutomationProperties.Name="Resize the notes sidebar"
+                              AutomationProperties.AutomationId="SidebarSplitter" />
+            </Grid>
+
+            <shell:StatusBarView x:Name="StatusBar" Grid.Row="3" />
+        </Grid>
+
+        <!-- Dialogs (shortcuts, confirmations) over a scrim that covers the whole window. -->
+        <shell:ModalLayer x:Name="Modal" />
+    </Grid>
 </Window>

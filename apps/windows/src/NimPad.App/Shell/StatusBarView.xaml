@@ -1,0 +1,164 @@
+<!--
+    Status bar (deck p-04, p-24, p-28): 24 px, Caption text. Left: sidebar toggle (highlighted while open), position,
+    character count (wide layout only). Right: encoding, mode (menu of every format), zoom (click resets to 100%),
+    sync slot (icon + word; "Local only", "Not synced", "Not saved · Retry" in Err). In the narrow layout encoding,
+    mode and zoom move into a ⋯ menu. DataContext = ShellViewModel.
+    Only DynamicResource for design-system keys; StaticResource only for keys defined earlier in this file.
+-->
+<UserControl x:Class="NimPad.App.Shell.StatusBarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:NimPad.App.Controls"
+             xmlns:shell="clr-namespace:NimPad.App.Shell"
+             Height="24">
+    <UserControl.Resources>
+        <!-- A status item: Caption text in Text2, hover / press wash, radius 4, inset focus ring. -->
+        <Style x:Key="StatusButton" TargetType="ButtonBase">
+            <Setter Property="Template" Value="{DynamicResource KitButtonTemplate}" />
+            <Setter Property="FocusVisualStyle" Value="{DynamicResource InsetFocusVisualSmall}" />
+            <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground" Value="{DynamicResource Text2Brush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="c:Ui.CornerRadius" Value="4" />
+            <Setter Property="c:Ui.IconSize" Value="14" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource PressBrush}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.4" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Plain status text (position, count, encoding of a note): Caption, Text2, 8 px apart. -->
+        <Style x:Key="StatusText" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="LineHeight" Value="16" />
+            <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
+            <Setter Property="Foreground" Value="{DynamicResource Text2Brush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="8,0" />
+        </Style>
+
+        <!-- The sidebar toggle: checked (sidebar open) = AccentSoft fill + Accent glyph. -->
+        <Style x:Key="SidebarToggleStyle" TargetType="shell:CommandToggleButton" BasedOn="{StaticResource StatusButton}">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,4,0" />
+            <Setter Property="c:Ui.IconSize" Value="16" />
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--
+            The sync slot: an icon and a word, never color alone. Phase 1: "Local only" (Computer) for notes, "Not synced"
+            for files from disk; "Not saved · Retry" (ErrorCircle, Err) after a failed autosave, the only clickable state.
+        -->
+        <Style x:Key="SyncButton" TargetType="Button" BasedOn="{StaticResource StatusButton}">
+            <Setter Property="Margin" Value="2,0,0,0" />
+            <Setter Property="c:Ui.Icon" Value="{DynamicResource Computer}" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="ToolTip" Value="Notes are saved on this computer only" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding StatusBar.SyncState}" Value="NotSynced">
+                    <Setter Property="c:Ui.Icon" Value="{DynamicResource CloudOff}" />
+                    <Setter Property="ToolTip" Value="Files from disk are saved with Ctrl+S and are not synced" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StatusBar.SyncState}" Value="SaveFailed">
+                    <Setter Property="c:Ui.Icon" Value="{DynamicResource ErrorCircle}" />
+                    <Setter Property="Foreground" Value="{DynamicResource ErrBrush}" />
+                    <Setter Property="IsHitTestVisible" Value="True" />
+                    <Setter Property="Focusable" Value="True" />
+                    <Setter Property="ToolTip" Value="This note couldn't be saved. Retry" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+    </UserControl.Resources>
+
+    <shell:RegionBorder x:Name="Bar" ControlType="StatusBar" Background="{DynamicResource ChromeBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="8,0,8,0"
+                        AutomationProperties.AutomationId="StatusBar" AutomationProperties.Name="Status bar">
+        <DockPanel LastChildFill="False" KeyboardNavigation.TabNavigation="Cycle">
+            <shell:CommandToggleButton x:Name="SidebarToggle" DockPanel.Dock="Left" Style="{StaticResource SidebarToggleStyle}"
+                                       c:Ui.Icon="{DynamicResource SidebarToggle}"
+                                       IsChecked="{Binding IsSidebarOpen, Mode=OneWay}"
+                                       ToggleCommand="{Binding StatusBar.ToggleSidebarCommand}"
+                                       ToolTip="Notes sidebar (Ctrl+B)" AutomationProperties.Name="Notes sidebar"
+                                       AutomationProperties.AutomationId="SidebarToggle" />
+            <TextBlock x:Name="Position" DockPanel.Dock="Left" Style="{StaticResource StatusText}"
+                       Text="{Binding StatusBar.PositionText}"
+                       Visibility="{Binding StatusBar.HasActiveTab, Converter={x:Static shell:ShellConverters.TrueToVisible}}"
+                       AutomationProperties.AutomationId="StatusPosition" />
+            <TextBlock x:Name="Characters" DockPanel.Dock="Left" Style="{StaticResource StatusText}"
+                       Text="{Binding StatusBar.CharacterCountText}"
+                       AutomationProperties.AutomationId="StatusCharacters">
+                <TextBlock.Visibility>
+                    <MultiBinding Converter="{x:Static shell:ShellConverters.AllTrueToVisible}">
+                        <Binding Path="IsCharacterCountVisible" />
+                        <Binding Path="StatusBar.HasActiveTab" />
+                    </MultiBinding>
+                </TextBlock.Visibility>
+            </TextBlock>
+
+            <!-- Right side, from the right edge: sync, ⋯ (narrow), zoom, mode, encoding. -->
+            <Button x:Name="Sync" DockPanel.Dock="Right" Style="{StaticResource SyncButton}"
+                    Content="{Binding StatusBar.SyncText}" Command="{Binding StatusBar.RetrySaveCommand}"
+                    AutomationProperties.Name="{Binding StatusBar.SyncText}"
+                    AutomationProperties.AutomationId="StatusSync"
+                    Visibility="{Binding StatusBar.HasActiveTab, Converter={x:Static shell:ShellConverters.TrueToVisible}}" />
+            <Button x:Name="More" DockPanel.Dock="Right" Style="{StaticResource StatusButton}"
+                    c:Ui.Icon="{DynamicResource More}" Width="28" Padding="0" Click="OnMoreClick"
+                    ToolTip="Encoding, mode and zoom" AutomationProperties.Name="More"
+                    AutomationProperties.AutomationId="StatusMore">
+                <Button.Visibility>
+                    <MultiBinding Converter="{x:Static shell:ShellConverters.AllTrueToVisible}">
+                        <Binding Path="IsStatusBarCompact" />
+                        <Binding Path="StatusBar.HasActiveTab" />
+                    </MultiBinding>
+                </Button.Visibility>
+            </Button>
+            <StackPanel x:Name="Details" DockPanel.Dock="Right" Orientation="Horizontal">
+                <StackPanel.Visibility>
+                    <MultiBinding Converter="{x:Static shell:ShellConverters.AllTrueToVisible}">
+                        <Binding Path="IsStatusBarCompact" Converter="{x:Static shell:ShellConverters.Not}" />
+                        <Binding Path="StatusBar.HasActiveTab" />
+                    </MultiBinding>
+                </StackPanel.Visibility>
+                <TextBlock x:Name="Encoding" Style="{StaticResource StatusText}" Text="{Binding StatusBar.EncodingText}"
+                           ToolTip="Text encoding" AutomationProperties.AutomationId="StatusEncoding" />
+                <Button x:Name="Mode" Style="{StaticResource StatusButton}" Content="{Binding StatusBar.ModeText}"
+                        Click="OnModeClick"
+                        ToolTip="Change the mode" AutomationProperties.Name="{Binding StatusBar.ModeText}"
+                        AutomationProperties.HelpText="Mode" AutomationProperties.AutomationId="StatusMode" />
+                <Button x:Name="Zoom" Style="{StaticResource StatusButton}" Content="{Binding StatusBar.ZoomText}"
+                        Command="{Binding ResetZoomCommand}"
+                        ToolTip="Reset zoom to 100% (Ctrl+0)" AutomationProperties.Name="{Binding StatusBar.ZoomText}"
+                        AutomationProperties.HelpText="Zoom" AutomationProperties.AutomationId="StatusZoom" />
+            </StackPanel>
+        </DockPanel>
+    </shell:RegionBorder>
+</UserControl>

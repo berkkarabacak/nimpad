@@ -1,0 +1,38 @@
+<!--
+    Banners under the tab strip (deck p-13, p-25): full-bleed, 36 px minimum, icon + message + at most one action,
+    dismiss X when allowed; they leave when their cause clears. DataContext = ShellViewModel.
+    Only DynamicResource for design-system keys.
+-->
+<UserControl x:Class="NimPad.App.Shell.BannerHostView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:NimPad.App.Controls"
+             xmlns:shell="clr-namespace:NimPad.App.Shell"
+             Focusable="False">
+    <shell:RegionBorder x:Name="Host" AutomationProperties.AutomationId="BannerHost"
+                        AutomationProperties.Name="Banners">
+        <ItemsControl x:Name="List" ItemsSource="{Binding Banners.Banners}" Focusable="False">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <shell:RegionBorder ControlType="Group" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1"
+                                        AutomationProperties.AutomationId="Banner"
+                                        AutomationProperties.Name="{Binding Message}"
+                                        AutomationProperties.ItemStatus="{Binding Kind}"
+                                        AutomationProperties.LiveSetting="Polite"
+                                        Loaded="OnBannerLoaded">
+                        <c:Banner Kind="{Binding Kind, Converter={x:Static shell:ShellConverters.BannerKindToControl}}"
+                                  Content="{Binding Message}" CornerRadius="0" Padding="16,8,12,8"
+                                  ActionContent="{Binding ActionText}" ActionCommand="{Binding ActionCommand}">
+                            <c:Banner.DismissCommand>
+                                <MultiBinding Converter="{x:Static shell:ShellConverters.CommandWhen}">
+                                    <Binding Path="CanDismiss" />
+                                    <Binding Path="DismissCommand" />
+                                </MultiBinding>
+                            </c:Banner.DismissCommand>
+                        </c:Banner>
+                    </shell:RegionBorder>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </shell:RegionBorder>
+</UserControl>

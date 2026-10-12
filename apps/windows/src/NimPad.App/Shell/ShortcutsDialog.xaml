@@ -1,0 +1,103 @@
+<!--
+    Keyboard shortcuts dialog (deck p-12): title + close, filter field, the groups in two balanced columns with key
+    caps, an empty state ("No shortcuts match …"), and the footer note. DataContext = ShortcutsViewModel.
+    Only DynamicResource for design-system keys (see ConfirmDialog.xaml).
+-->
+<UserControl x:Class="NimPad.App.Shell.ShortcutsDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:NimPad.App.Controls"
+             xmlns:shell="clr-namespace:NimPad.App.Shell"
+             xmlns:shortcuts="clr-namespace:NimPad.Presentation.Shortcuts;assembly=NimPad.Presentation"
+             MaxWidth="824" Margin="24"
+             AutomationProperties.AutomationId="ShortcutsDialog"
+             AutomationProperties.Name="Keyboard shortcuts"
+             KeyboardNavigation.TabNavigation="Cycle">
+    <ContentControl Style="{DynamicResource DialogCard}" Padding="0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <DockPanel Margin="28,24,20,0">
+                <Button x:Name="CloseButton" DockPanel.Dock="Right" VerticalAlignment="Center"
+                        Style="{DynamicResource IconButton}" c:Ui.Icon="{DynamicResource Close}"
+                        AutomationProperties.Name="Close" AutomationProperties.AutomationId="ShortcutsClose"
+                        ToolTip="Close (Esc)" Click="OnCloseClick" />
+                <TextBlock Style="{DynamicResource DialogTitleText}" Foreground="{DynamicResource TextBrush}"
+                           VerticalAlignment="Center" Text="Keyboard shortcuts" />
+            </DockPanel>
+
+            <c:SearchBox x:Name="FilterBox" Grid.Row="1" Margin="28,16,28,8" Placeholder="Search shortcuts"
+                         Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         AutomationProperties.Name="Search shortcuts"
+                         AutomationProperties.AutomationId="ShortcutsFilter" />
+
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          Focusable="False" Padding="28,8,28,16">
+                <Grid>
+                    <ItemsControl x:Name="GroupList" ItemsSource="{Binding Groups}" Focusable="False"
+                                  AutomationProperties.Name="Shortcuts">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <shell:BalancedColumnsPanel Columns="2" ColumnGap="44" MinColumnWidth="300" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,8,0,12">
+                                    <TextBlock Style="{DynamicResource MicroText}" Foreground="{DynamicResource Text3Brush}"
+                                               Text="{Binding Title}" Margin="0,0,0,6" />
+                                    <ItemsControl ItemsSource="{Binding Shortcuts}" Focusable="False">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <DockPanel MinHeight="34"
+                                                           AutomationProperties.Name="{Binding Label}">
+                                                    <ItemsControl DockPanel.Dock="Right" VerticalAlignment="Center"
+                                                                  ItemsSource="{Binding Keys}" Focusable="False">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <c:KeyCap Text="{Binding}" Margin="4,0,0,0" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                    <TextBlock Style="{DynamicResource BodyText}"
+                                                               Foreground="{DynamicResource TextBrush}"
+                                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                                               Text="{Binding Label}" />
+                                                </DockPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" Margin="0,40,0,48"
+                                Visibility="{Binding HasResults, Converter={x:Static shell:ShellConverters.FalseToVisible}}">
+                        <TextBlock Style="{DynamicResource BodyLabelText}" Foreground="{DynamicResource TextBrush}"
+                                   HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                                   Text="{Binding EmptyTitle}" />
+                        <TextBlock Style="{DynamicResource SecondaryText}" Foreground="{DynamicResource Text2Brush}"
+                                   HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="0,4,0,0"
+                                   Text="{Binding EmptyMessage}" />
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+
+            <Border Grid.Row="3" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="28,14,28,16">
+                <TextBlock Style="{DynamicResource CaptionText}" Foreground="{DynamicResource Text2Brush}"
+                           TextWrapping="Wrap" Text="{x:Static shortcuts:ShortcutsViewModel.FooterText}" />
+            </Border>
+        </Grid>
+    </ContentControl>
+</UserControl>

@@ -1,0 +1,30 @@
+<!--
+    Confirmation dialog (deck p-25, p-27): title, one or two sentences, Cancel (quiet) and the primary action
+    (Destructive when it deletes). Optional middle choice ("Don't save"). Shown by ModalLayer over the scrim; focus
+    starts on Cancel (the safe action), Enter confirms the primary button, Esc cancels.
+    Only DynamicResource for design-system keys: the dialog can be built before the resources are merged (tests).
+-->
+<UserControl x:Class="NimPad.App.Shell.ConfirmDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             MaxWidth="440" Margin="24"
+             AutomationProperties.AutomationId="ConfirmDialog"
+             KeyboardNavigation.TabNavigation="Cycle">
+    <ContentControl Style="{DynamicResource DialogCard}">
+        <StackPanel>
+            <TextBlock x:Name="TitleText" Style="{DynamicResource DialogTitleText}" TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextBrush}" />
+            <TextBlock x:Name="MessageText" Style="{DynamicResource BodyText}" TextWrapping="Wrap" Margin="0,8,0,0"
+                       Foreground="{DynamicResource Text2Brush}" />
+            <DockPanel Margin="0,24,0,0" LastChildFill="False">
+                <Button x:Name="SecondaryButton" DockPanel.Dock="Left" Style="{DynamicResource SecondaryButton}"
+                        AutomationProperties.AutomationId="ConfirmSecondary" Click="OnSecondaryClick" />
+                <Button x:Name="PrimaryButton" DockPanel.Dock="Right" Margin="8,0,0,0"
+                        Style="{DynamicResource PrimaryButton}"
+                        AutomationProperties.AutomationId="ConfirmPrimary" Click="OnPrimaryClick" />
+                <Button x:Name="CancelButton" DockPanel.Dock="Right" Style="{DynamicResource QuietButton}"
+                        AutomationProperties.AutomationId="ConfirmCancel" Click="OnCancelClick" />
+            </DockPanel>
+        </StackPanel>
+    </ContentControl>
+</UserControl>
